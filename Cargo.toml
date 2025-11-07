@@ -39,8 +39,8 @@ wasm-bindgen-test = { default-features = false, version = "^0.3" }
 web-sys = { default-features = false, version = "^0.3" }
 
 # publishable crates
-wallet_standard = { path = "./crates/wallet_standard", version = "0.4.4" }
-wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.4.4" }
+wallet_standard = { path = "./crates/wallet_standard", version = "0.5.0" }
+wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.5.0" }
 
 [workspace.metadata.bin]
 cargo-dylint = { version = "5.0.0" }

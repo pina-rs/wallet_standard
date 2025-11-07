@@ -24,7 +24,7 @@ Or directly add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-wallet_standard_browser = "0.4.4"
+wallet_standard_browser = "0.5.0"
 ```
 
 ### Features

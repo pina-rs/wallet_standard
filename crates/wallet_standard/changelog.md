@@ -84,3 +84,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - add `wallet-standard` github repo link
 - update crate readme description
+## 0.5.0 (2025-11-07)
+
+### Breaking Changes
+
+#### Upgrade solana toolchain to 'v3'
+
+Additionally, remove all instances of `solana-sdk` and use the core crates instead. For example, `solana_message` instead of `solana_sdk::message`.
+
+### Fixes
+
+- Remove unused dependency `derive_more`
+
+### Documentation
+
+- Make some improvements to the documentation for the crates.
