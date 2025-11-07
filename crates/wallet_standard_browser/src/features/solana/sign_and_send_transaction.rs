@@ -75,15 +75,14 @@ pub struct SolanaSignAndSendTransactionInput {
 impl SolanaSignAndSendTransactionFeature {
 	pub fn supported_transaction_versions(&self) -> WalletResult<Vec<TransactionVersion>> {
 		let array = self.supported_transaction_versions_getter();
-		let versions = array
+
+		array
 			.iter()
 			.map(|value| {
 				let version: TransactionVersion = serde_wasm_bindgen::from_value(value)?;
 				Ok(version)
 			})
-			.collect::<WalletResult<Vec<_>>>();
-
-		versions
+			.collect::<WalletResult<Vec<_>>>()
 	}
 
 	pub async fn sign_and_send_transaction(

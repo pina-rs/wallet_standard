@@ -77,15 +77,14 @@ impl SolanaSignTransactionOutput for BrowserSolanaSignTransactionOutput {
 impl SolanaSignTransactionFeature {
 	pub fn supported_transaction_versions(&self) -> WalletResult<Vec<TransactionVersion>> {
 		let array = self._supported_transaction_versions();
-		let versions = array
+
+		array
 			.iter()
 			.map(|value| {
 				let version: TransactionVersion = serde_wasm_bindgen::from_value(value)?;
 				Ok(version)
 			})
-			.collect::<WalletResult<Vec<_>>>();
-
-		versions
+			.collect::<WalletResult<Vec<_>>>()
 	}
 }
 

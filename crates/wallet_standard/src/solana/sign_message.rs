@@ -242,10 +242,10 @@ pub trait WalletSolanaSignMessage {
 	) -> WalletResult<Vec<Self::Output>>;
 }
 
-/// Implementation of WalletSolanaSignMessage for Solana Keypair.
+/// Implementation of `WalletSolanaSignMessage` for Solana Keypair.
 ///
 /// This allows a Solana Keypair to be used directly as a
-/// WalletSolanaSignMessage, which is useful for testing and simple
+/// `WalletSolanaSignMessage`, which is useful for testing and simple
 /// implementations.
 #[async_trait(?Send)]
 impl WalletSolanaSignMessage for Keypair {
