@@ -24,7 +24,7 @@ Or directly add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-wallet_standard = "0.5.0"
+wallet_standard = "0.5.1"
 ```
 
 ### Features

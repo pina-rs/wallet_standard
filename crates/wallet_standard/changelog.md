@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1 (2025-11-07)
+
+### Fixes
+
+- Use `solana_transaction_error` to prevent private usage of enum
+
 ## 0.5.0 (2025-11-07)
 
 ### Breaking Changes

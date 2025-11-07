@@ -35,6 +35,10 @@ command = "dprint fmt"
 
 [[workflows.steps]]
 type = "Command"
+command = "git add --all"
+
+[[workflows.steps]]
+type = "Command"
 command = 'git commit -m "chore: prepare releases"'
 
 [[workflows.steps]]
