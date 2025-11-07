@@ -26,7 +26,7 @@ pub enum WalletError {
 	Serde(String),
 	#[cfg(feature = "solana")]
 	#[error(transparent)]
-	Transaction(#[from] solana_transaction::TransactionError),
+	Transaction(#[from] solana_transaction_error::TransactionError),
 	#[error("the requested feature: `{feature}` is not supported for this wallet: `{wallet}`")]
 	UnsupportedFeature { feature: String, wallet: String },
 	#[error("icon type is not supported")]
