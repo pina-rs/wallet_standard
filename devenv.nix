@@ -150,7 +150,7 @@ in
       exec = ''
         set -e
         if [ -z "$CI" ]; then
-          echo "Builing project locally"
+          echo "Building project locally"
           cargo build --all-features
         else
           echo "Building in CI"
@@ -241,7 +241,8 @@ in
     };
     "validator:kill" = {
       exec = ''
-        pids=$(lsof -i :8899 -t)
+        port=8899
+        pids=$(lsof -i :$port -t)
 
         if [ -n "$pids" ]; then
           kill $pids
