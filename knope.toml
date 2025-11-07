@@ -1,9 +1,9 @@
 [packages.wallet_standard]
 versioned_files = [
 	"crates/wallet_standard/Cargo.toml",
-	{ path = "crates/wallet_standard_browser/Cargo.toml", dependency = "wallet_standard" },
 	{ path = "Cargo.toml", dependency = "wallet_standard" },
 	{ path = "crates/wallet_standard/readme.md", regex = "wallet_standard = \"(?<version>\\d+\\.\\d+\\.\\d+)\"" },
+	{ path = "readme.md", regex = "`wallet_standard`\\s+\\|\\s+(?<version>\\d+\\.\\d+\\.\\d+)" },
 	"Cargo.lock",
 ]
 scopes = ["wallet_standard"]
@@ -15,6 +15,7 @@ versioned_files = [
 	"crates/wallet_standard_browser/Cargo.toml",
 	{ path = "Cargo.toml", dependency = "wallet_standard_browser" },
 	{ path = "crates/wallet_standard_browser/readme.md", regex = "wallet_standard_browser = \"(?<version>\\d+\\.\\d+\\.\\d+)\"" },
+	{ path = "readme.md", regex = "`wallet_standard_browser`\\s+\\|\\s+(?<version>\\d+\\.\\d+\\.\\d+)" },
 	"Cargo.lock",
 ]
 scopes = ["wallet_standard_browser"]
@@ -63,4 +64,5 @@ type = "Release"
 owner = "pina-rs"
 repo = "wallet_standard"
 
-bot.releases.enabled = true
+[bot.releases]
+enabled = true
