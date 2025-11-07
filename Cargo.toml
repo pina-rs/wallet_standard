@@ -12,7 +12,7 @@ rust-version = "1.85.0"
 
 [workspace.dependencies]
 async-trait = { default-features = false, version = "^0.1" }
-bincode = { default-features = false, version = "^1" }
+bincode = { default-features = false, version = "^2" }
 futures = { default-features = false, version = "^0.3" }
 insta = { default-features = false, version = "^1" }
 js-sys = { default-features = false, version = "^0.3" }
