@@ -13,12 +13,9 @@ in
     with pkgs;
     [
       binaryen
-      cargo-binstall # speed up cargo-rust-bin installs
-      cargo-insta
-      cargo-nextest
       cargo-run-bin
       chromedriver
-      curl # needed for `release-plz`
+      curl
       cmake
       dprint
       eget
@@ -80,7 +77,7 @@ in
   tasks = {
     "rustfmt:nightly" = {
       exec = ''
-        rustup toolchain install nightly-2025-11-06 --component rustfmt --force
+        rustup toolchain install nightly --component rustfmt --force
       '';
       before = [ "devenv:enterShell" ];
     };

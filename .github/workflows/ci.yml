@@ -50,7 +50,6 @@ jobs:
 
       - name: test `wallet_standard`
         run:
-          sudo prlimit --pid $$ --nofile=1000000:1000000
           cargo test_wallet_standard
         shell: devenv shell -- bash -e {0}
 
