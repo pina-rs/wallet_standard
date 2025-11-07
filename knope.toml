@@ -1,0 +1,59 @@
+[packages.wallet_standard]
+versioned_files = [
+	"crates/wallet_standard/Cargo.toml",
+	{ path = "crates/wallet_standard_browser/Cargo.toml", dependency = "wallet_standard" },
+	{ path = "Cargo.toml", dependency = "wallet_standard" },
+	{ path = "crates/wallet_standard/readme.md", regex = "wallet_standard = \"(?<version>\\d+\\.\\d+\\.\\d+)\"" },
+	"Cargo.lock",
+]
+scopes = ["wallet_standard"]
+changelog = "crates/wallet_standard/changelog.md"
+extra_changelog_sections = [{ name = "Notes", types = ["note"] }, { name = "Documentation", types = ["docs"] }]
+
+[packages.wallet_standard_browser]
+versioned_files = [
+	"crates/wallet_standard_browser/Cargo.toml",
+	{ path = "Cargo.toml", dependency = "wallet_standard_browser" },
+	{ path = "crates/wallet_standard_browser/readme.md", regex = "wallet_standard_browser = \"(?<version>\\d+\\.\\d+\\.\\d+)\"" },
+	"Cargo.lock",
+]
+scopes = ["wallet_standard_browser"]
+changelog = "crates/wallet_standard_browser/changelog.md"
+extra_changelog_sections = [{ name = "Notes", types = ["note"] }, { name = "Documentation", types = ["docs"] }]
+
+[[workflows]]
+name = "release"
+
+[[workflows.steps]]
+type = "PrepareRelease"
+
+[[workflows.steps]]
+type = "Command"
+command = "dprint fmt"
+
+[[workflows.steps]]
+type = "Command"
+command = 'git commit -m "chore: prepare releases"'
+
+[[workflows.steps]]
+type = "Command"
+command = "git push"
+
+[[workflows.steps]]
+type = "Release"
+
+[[workflows]]
+name = "document-change"
+
+[[workflows.steps]]
+type = "CreateChangeFile"
+
+[[workflows.steps]]
+type = "Command"
+command = "dprint fmt .changeset/* --allow-no-files"
+
+[github]
+owner = "pina-rs"
+repo = "wallet_standard"
+
+bot.releases.enabled = true

@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
-use solana_sdk::commitment_config::CommitmentLevel;
-use solana_sdk::transaction::VersionedTransaction;
+use solana_commitment_config::CommitmentLevel;
+use solana_transaction::versioned::VersionedTransaction;
 use typed_builder::TypedBuilder;
 
 use super::SolanaSignTransactionOptions;

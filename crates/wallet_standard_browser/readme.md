@@ -24,7 +24,7 @@ Or directly add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-wallet_standard_browser = "0.4" # replace with the latest version
+wallet_standard_browser = "0.4.4"
 ```
 
 ### Features
@@ -37,9 +37,9 @@ wallet_standard_browser = "0.4" # replace with the latest version
 
 This crate provides several key components:
 
-1. **BrowserWallet**: A wrapper around JavaScript wallet implementations that conforms to the Wallet Standard
-2. **BrowserWalletInfo**: Represents wallet metadata for browser-based wallets
-3. **BrowserWalletAccountInfo**: Represents account information for browser-based wallets
+1. **`BrowserWallet`**: A wrapper around JavaScript wallet implementations that conforms to the Wallet Standard
+2. **`BrowserWalletInfo`**: Represents wallet metadata for browser-based wallets
+3. **`BrowserWalletAccountInfo`**: Represents account information for browser-based wallets
 4. **Feature wrappers**: JavaScript bindings for wallet features like connect, disconnect, sign message, etc.
 
 ## Usage for dApp Developers
@@ -137,11 +137,10 @@ fn listen_for_wallets() -> WalletResult<()> {
 ### Signing and Sending Transactions (Solana)
 
 ```rust
-use solana_sdk::message::Message;
-use solana_sdk::pubkey::Pubkey;
-use solana_sdk::system_instruction;
-use solana_sdk::transaction::Transaction;
-use solana_sdk::transaction::VersionedTransaction;
+use solana_message::Message;
+use solana_pubkey::Pubkey;
+use solana_transaction::Transaction;
+use solana_transaction::VersionedTransaction;
 use wallet_standard_browser::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 
@@ -155,7 +154,7 @@ async fn send_transaction(wallet: &mut BrowserWallet) -> WalletResult<()> {
 	let pubkey = wallet.try_solana_pubkey()?;
 
 	// Create a simple transaction (transfer 0.001 SOL to self)
-	let instructions = vec![system_instruction::transfer(
+	let instructions = vec![solana_system_interface::instructions::transfer(
 		&pubkey, &pubkey, 1_000_000, // lamports (0.001 SOL)
 	)];
 

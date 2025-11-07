@@ -21,12 +21,12 @@ pub enum WalletError {
 	ParseString(String),
 	#[error(transparent)]
 	#[cfg(feature = "solana")]
-	Program(#[from] solana_sdk::program_error::ProgramError),
+	Program(#[from] solana_program_error::ProgramError),
 	#[error("an error occured during deserialization: {0}")]
 	Serde(String),
 	#[cfg(feature = "solana")]
 	#[error(transparent)]
-	Transaction(#[from] solana_sdk::transaction::TransactionError),
+	Transaction(#[from] solana_transaction::TransactionError),
 	#[error("the requested feature: `{feature}` is not supported for this wallet: `{wallet}`")]
 	UnsupportedFeature { feature: String, wallet: String },
 	#[error("icon type is not supported")]
@@ -98,8 +98,8 @@ impl From<wasm_bindgen::JsValue> for WalletError {
 	}
 }
 #[cfg(feature = "solana")]
-impl From<solana_sdk::signer::SignerError> for WalletError {
-	fn from(error: solana_sdk::signer::SignerError) -> Self {
+impl From<solana_signer::SignerError> for WalletError {
+	fn from(error: solana_signer::SignerError) -> Self {
 		WalletError::Signer(error.to_string())
 	}
 }

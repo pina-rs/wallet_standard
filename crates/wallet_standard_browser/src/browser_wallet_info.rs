@@ -7,6 +7,10 @@ use std::hash::Hasher;
 use js_sys::Array;
 use js_sys::Function;
 use js_sys::Object;
+use js_sys::Reflect;
+use serde::Deserialize;
+use serde::Serialize;
+use typed_builder::TypedBuilder;
 use wallet_standard::WalletAccountInfo;
 use wallet_standard::WalletError;
 use wallet_standard::WalletInfo;
@@ -274,6 +278,31 @@ impl BrowserWalletInfo {
 	}
 }
 
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct BrowserWalletInfoFeatures(#[serde(with = "serde_wasm_bindgen::preserve")] Object);
+
+impl BrowserWalletInfoFeatures {
+	pub fn add_feature<T: FeatureFromJs>(&self, feature: &T) {
+		Reflect::set(&self.0, &JsValue::from_str(T::NAME), feature.as_ref()).unwrap();
+	}
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypedBuilder)]
+pub struct BrowserWalletInfoProps {
+	#[builder(setter(into))]
+	pub name: String,
+	#[builder(default)]
+	pub chains: Vec<String>,
+	#[builder(setter(into))]
+	pub version: String,
+	#[builder(setter(into))]
+	pub icon: String,
+	#[builder(default)]
+	pub features: BrowserWalletInfoFeatures,
+	#[builder(default)]
+	pub accounts: Vec<BrowserWalletAccountInfoProps>,
+}
+
 impl WalletInfo for BrowserWalletInfo {
 	type Account = BrowserWalletAccountInfo;
 
@@ -326,6 +355,36 @@ impl Hash for BrowserWalletAccountInfo {
 		self.features().hash(state);
 		self.label().hash(state);
 		self.icon().hash(state);
+	}
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypedBuilder)]
+pub struct BrowserWalletAccountInfoProps {
+	#[builder(setter(into))]
+	pub address: String,
+	#[builder(setter(into))]
+	pub public_key: Vec<u8>,
+	#[builder(default)]
+	pub chains: Vec<String>,
+	#[builder(default)]
+	pub features: Vec<String>,
+	#[builder(default)]
+	pub label: Option<String>,
+	#[builder(default)]
+	pub icon: Option<String>,
+}
+
+impl BrowserWalletAccountInfo {
+	/// Create a new `BrowserWalletAccountInfo` from a
+	/// `BrowserWalletAccountInfoProps`.
+	///
+	/// # Errors
+	///
+	/// Returns an error if the `BrowserWalletAccountInfoProps` is not valid.
+	pub fn try_new(props: &BrowserWalletAccountInfoProps) -> WalletResult<Self> {
+		let result = serde_wasm_bindgen::to_value(props)?.dyn_into::<BrowserWalletAccountInfo>()?;
+
+		Ok(result)
 	}
 }
 

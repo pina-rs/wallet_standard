@@ -11,7 +11,7 @@ mod sign_transaction;
 mod types;
 
 pub mod prelude {
-	pub use solana_sdk::signer::Signer;
+	pub use solana_signer::Signer;
 
 	pub use super::SolanaSignAndSendTransactionOutput;
 	pub use super::SolanaSignInOutput;

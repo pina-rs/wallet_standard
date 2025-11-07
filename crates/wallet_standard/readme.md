@@ -24,7 +24,7 @@ Or directly add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-wallet_standard = "0.4" # replace with the latest version
+wallet_standard = "0.4.4"
 ```
 
 ### Features
@@ -205,9 +205,9 @@ impl WalletStandardDisconnect for MyWallet {
 ### Implementing Solana-Specific Features
 
 ```rust
-use solana_sdk::signature::Keypair;
-use solana_sdk::signature::Signature;
-use solana_sdk::signer::Signer;
+use solana_signature::Keypair;
+use solana_signature::Signature;
+use solana_signer::Signer;
 use wallet_standard::prelude::*;
 
 // Assuming MyWallet is defined as above

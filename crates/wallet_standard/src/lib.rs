@@ -36,10 +36,10 @@ pub mod prelude {
 #[cfg(feature = "solana")]
 #[cfg(test)]
 mod tests {
-	use solana_sdk::message::Message;
-	use solana_sdk::signature::Signature;
-	use solana_sdk::transaction::Transaction;
-	use solana_sdk::transaction::VersionedTransaction;
+	use solana_message::Message;
+	use solana_signature::Signature;
+	use solana_transaction::Transaction;
+	use solana_transaction::versioned::VersionedTransaction;
 
 	use super::*;
 

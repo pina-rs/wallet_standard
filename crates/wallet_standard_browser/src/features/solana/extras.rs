@@ -1,4 +1,4 @@
-use solana_sdk::pubkey::Pubkey;
+use solana_pubkey::Pubkey;
 use wallet_standard::WalletAccountInfo;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;

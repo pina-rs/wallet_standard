@@ -1,38 +1,57 @@
 [package]
 name = "wallet_standard"
-version = { workspace = true }
+version = "0.4.4"
 authors = { workspace = true }
 categories = ["wasm", "web-programming"]
 edition = { workspace = true }
 homepage = { workspace = true }
 include = ["src/**/*", "Cargo.toml", "readme.md"]
+keywords = ["solana", "wallet", "web3", "blockchain"]
 license = { workspace = true }
 publish = true
 readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
-tags = ["solana", "wallet", "web3", "blockchain"]
 description = "An implementation of the solana wallet standard in rust"
 
 [dependencies]
-async-trait = { workspace = true }
-bincode = { workspace = true, optional = true }
-derive_more = { workspace = true, features = ["deref", "deref_mut", "from"] }
-futures = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde-wasm-bindgen = { workspace = true, optional = true }
-serde_bytes = { workspace = true }
-solana-sdk = { workspace = true, optional = true }
-thiserror = { workspace = true }
-typed-builder = { workspace = true }
-wasm-bindgen = { workspace = true, optional = true }
+async-trait = { workspace = true, default-features = true }
+bincode = { workspace = true, default-features = true, optional = true }
+derive_more = { workspace = true, default-features = true, features = ["deref", "deref_mut", "from"] }
+futures = { workspace = true, default-features = true }
+serde = { workspace = true, default-features = true, features = ["derive"] }
+serde-wasm-bindgen = { workspace = true, default-features = true, optional = true }
+serde_bytes = { workspace = true, default-features = true }
+solana-commitment-config = { workspace = true, default-features = true, optional = true }
+solana-keypair = { workspace = true, default-features = true, optional = true }
+solana-message = { workspace = true, default-features = true, optional = true }
+solana-program-error = { workspace = true, default-features = true, optional = true }
+solana-pubkey = { workspace = true, default-features = true, optional = true }
+solana-signature = { workspace = true, default-features = true, optional = true }
+solana-signer = { workspace = true, default-features = true, optional = true }
+solana-transaction = { workspace = true, default-features = true, optional = true }
+solana-transaction-error = { workspace = true, default-features = true, optional = true }
+thiserror = { workspace = true, default-features = true }
+typed-builder = { workspace = true, default-features = true }
+wasm-bindgen = { workspace = true, default-features = true, optional = true }
 
 [dev-dependencies]
-insta = { workspace = true, features = ["json", "redactions", "ron", "yaml"] }
+insta = { workspace = true, default-features = true, features = ["json", "redactions", "ron", "yaml"] }
 
 [features]
 browser = ["dep:serde-wasm-bindgen", "dep:wasm-bindgen"]
-solana = ["dep:bincode", "dep:solana-sdk"]
+solana = [
+	"dep:bincode",
+	"dep:solana-commitment-config",
+	"dep:solana-keypair",
+	"dep:solana-message",
+	"dep:solana-program-error",
+	"dep:solana-pubkey",
+	"dep:solana-signature",
+	"dep:solana-signer",
+	"dep:solana-transaction",
+	"dep:solana-transaction-error",
+]
 
 [lints]
 workspace = true

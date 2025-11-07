@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use futures::future::try_join_all;
-use solana_sdk::signature::Keypair;
-use solana_sdk::signature::Signature;
-use solana_sdk::signer::Signer;
+use solana_keypair::Keypair;
+use solana_signature::Signature;
+use solana_signer::Signer;
 
 use crate::WalletResult;
 
@@ -122,11 +122,11 @@ pub trait SolanaSignMessageOutput: SolanaSignatureOutput {
 	fn signature_type(&self) -> Option<String>;
 }
 
-/// Implementation of SolanaSignatureOutput for a tuple of (Signature, Vec<u8>,
-/// Option<String>).
+/// Implementation of [`SolanaSignatureOutput`] for a tuple of (Signature,
+/// Vec<u8>, Option<String>).
 ///
 /// This allows a tuple containing a signature, message, and optional signature
-/// type to be used as a SolanaSignatureOutput.
+/// type to be used as a [`SolanaSignatureOutput`].
 impl SolanaSignatureOutput for (Signature, Vec<u8>, Option<String>) {
 	fn try_signature(&self) -> WalletResult<Signature> {
 		self.0.try_signature()

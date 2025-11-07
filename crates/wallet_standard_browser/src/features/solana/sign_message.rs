@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use js_sys::Array;
 use serde::Deserialize;
 use serde::Serialize;
-use solana_sdk::signature::Signature;
+use solana_signature::Signature;
 use typed_builder::TypedBuilder;
 use wallet_standard::SOLANA_SIGN_MESSAGE;
 use wallet_standard::SolanaSignMessageOutput;

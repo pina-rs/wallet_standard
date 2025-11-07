@@ -1,39 +1,52 @@
 [package]
 name = "wallet_standard_browser"
-version = { workspace = true }
+version = "0.4.4"
 authors = { workspace = true }
 categories = ["wasm", "web-programming"]
 edition = { workspace = true }
 homepage = { workspace = true }
 include = ["src/**/*", "Cargo.toml", "readme.md", "js/**/*"]
+keywords = ["solana", "wallet", "web3", "blockchain"]
 license = { workspace = true }
 publish = true
 readme = "readme.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
-tags = ["solana", "wallet", "web3", "blockchain"]
 description = "The wasm / browser compatible rust based implementation of the wallet standard."
 
 [lints]
 workspace = true
 
 [dependencies]
-async-trait = { workspace = true }
-bincode = { workspace = true, optional = true }
-futures = { workspace = true }
-js-sys = { workspace = true }
-log = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde-wasm-bindgen = { workspace = true }
-serde_bytes = { workspace = true }
-solana-sdk = { workspace = true, optional = true }
-thiserror = { workspace = true }
-tokio = { workspace = true, features = ["rt"] }
-typed-builder = { workspace = true }
+async-trait = { workspace = true, default-features = true }
+bincode = { workspace = true, default-features = true, optional = true }
+futures = { workspace = true, default-features = true }
+js-sys = { workspace = true, default-features = true }
+log = { workspace = true, default-features = true }
+serde = { workspace = true, default-features = true, features = ["derive"] }
+serde-wasm-bindgen = { workspace = true, default-features = true }
+serde_bytes = { workspace = true, default-features = true }
+solana-pubkey = { workspace = true, default-features = true, optional = true }
+solana-signature = { workspace = true, default-features = true, optional = true }
+solana-transaction = { workspace = true, default-features = true, optional = true }
+thiserror = { workspace = true, default-features = true }
+tokio = { workspace = true, default-features = true, features = ["rt"] }
+typed-builder = { workspace = true, default-features = true }
 wallet_standard = { workspace = true, features = ["browser"] }
-wasm-bindgen = { workspace = true }
-wasm-bindgen-futures = { workspace = true }
-web-sys = { workspace = true, features = ["console", "HtmlDocument", "Window"] }
+wasm-bindgen = { workspace = true, default-features = true }
+wasm-bindgen-futures = { workspace = true, default-features = true }
+web-sys = { workspace = true, default-features = true, features = ["console", "HtmlDocument", "Window"] }
+
+[dev-dependencies]
+solana-message = { workspace = true, default-features = true }
+solana-system-interface = { workspace = true, default-features = true }
+wasm-bindgen-test = { workspace = true, default-features = true }
+web-sys = { workspace = true, default-features = true, features = ["console", "HtmlDocument", "Window", "CustomEvent", "CustomEventInit"] }
 
 [features]
-solana = ["dep:bincode", "dep:solana-sdk", "wallet_standard/solana"]
+solana = [
+	"dep:bincode",
+	"dep:solana-pubkey",
+	"dep:solana-signature",
+	"wallet_standard/solana",
+]

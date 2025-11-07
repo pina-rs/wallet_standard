@@ -2,7 +2,7 @@
 
 use async_trait::async_trait;
 use js_sys::Array;
-use solana_sdk::signature::Signature;
+use solana_signature::Signature;
 use wallet_standard::SOLANA_SIGN_IN;
 use wallet_standard::SolanaSignInInput;
 use wallet_standard::SolanaSignInOutput;

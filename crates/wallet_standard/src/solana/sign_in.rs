@@ -3,7 +3,7 @@ use std::fmt::Write;
 use async_trait::async_trait;
 use serde::Deserialize;
 use serde::Serialize;
-use solana_sdk::pubkey::Pubkey;
+use solana_pubkey::Pubkey;
 use typed_builder::TypedBuilder;
 
 use super::SolanaSignMessageOutput;

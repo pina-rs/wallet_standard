@@ -3,7 +3,7 @@ use js_sys::Reflect;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
-pub trait FeatureFromJs: JsCast {
+pub trait FeatureFromJs: JsCast + Clone + core::fmt::Debug {
 	/// The colon separated name of the feature in the JS object.
 	const NAME: &'static str;
 
@@ -17,8 +17,7 @@ pub trait FeatureFromJs: JsCast {
 	}
 
 	fn feature_from_js_value(value: &JsValue) -> Option<Self> {
-		let object = value.dyn_ref()?;
-		Self::feature_from_js_object(object)
+		Self::feature_from_js_object(value.dyn_ref()?)
 	}
 }
 
