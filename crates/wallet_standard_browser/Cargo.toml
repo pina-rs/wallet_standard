@@ -32,7 +32,7 @@ solana-transaction = { workspace = true, default-features = true, optional = tru
 thiserror = { workspace = true, default-features = true }
 tokio = { workspace = true, default-features = true, features = ["rt"] }
 typed-builder = { workspace = true, default-features = true }
-wallet_standard = { workspace = true, features = ["browser"] , version = "0.5.0" }
+wallet_standard = { workspace = true, features = ["browser"], version = "0.5.0" }
 wasm-bindgen = { workspace = true, default-features = true }
 wasm-bindgen-futures = { workspace = true, default-features = true }
 web-sys = { workspace = true, default-features = true, features = ["console", "HtmlDocument", "Window"] }

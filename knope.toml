@@ -53,6 +53,12 @@ type = "CreateChangeFile"
 type = "Command"
 command = "dprint fmt .changeset/* --allow-no-files"
 
+[[workflows]]
+name = "forced-release"
+
+[[workflows.steps]]
+type = "Release"
+
 [github]
 owner = "pina-rs"
 repo = "wallet_standard"

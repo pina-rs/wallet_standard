@@ -1,10 +1,16 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## 0.5.0 (2025-11-07)
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+### Breaking Changes
 
-## [Unreleased]
+#### Upgrade solana toolchain to 'v3'
+
+Additionally, remove all instances of `solana-sdk` and use the core crates instead. For example, `solana_message` instead of `solana_sdk::message`.
+
+### Documentation
+
+- Make some improvements to the documentation for the crates.
 
 ## [0.4.4](https://github.com/ifiokjr/wallet_standard/compare/0.4.3...0.4.4) - 2025-03-15
 
@@ -115,14 +121,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### <!-- 6 -->🧪 Testing
 
 - passing tests for `wasm_client_solana`
-## 0.5.0 (2025-11-07)
-
-### Breaking Changes
-
-#### Upgrade solana toolchain to 'v3'
-
-Additionally, remove all instances of `solana-sdk` and use the core crates instead. For example, `solana_message` instead of `solana_sdk::message`.
-
-### Documentation
-
-- Make some improvements to the documentation for the crates.
