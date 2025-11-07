@@ -17,7 +17,6 @@ description = "An implementation of the solana wallet standard in rust"
 [dependencies]
 async-trait = { workspace = true, default-features = true }
 bincode = { workspace = true, default-features = true, optional = true }
-derive_more = { workspace = true, default-features = true, features = ["deref", "deref_mut", "from"] }
 futures = { workspace = true, default-features = true }
 serde = { workspace = true, default-features = true, features = ["derive"] }
 serde-wasm-bindgen = { workspace = true, default-features = true, optional = true }
