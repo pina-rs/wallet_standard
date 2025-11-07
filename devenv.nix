@@ -13,6 +13,7 @@ in
     with pkgs;
     [
       binaryen
+      cargo-release
       cargo-run-bin
       chromedriver
       curl
