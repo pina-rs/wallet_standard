@@ -36,24 +36,6 @@ jobs:
         run: lint:format
         shell: devenv shell -- bash -e {0}
 
-  docs:
-    timeout-minutes: 60
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    env:
-      RUSTUP_TOOLCHAIN: "nightly"
-    steps:
-      - name: checkout repository
-        uses: actions/checkout@v4
-
-      - name: setup
-        uses: ./.github/actions/devenv
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: build docs
-        run: build:docs
-        shell: devenv shell -- bash -e {0}
-
   test:
     timeout-minutes: 60
     runs-on: blacksmith-2vcpu-ubuntu-2404

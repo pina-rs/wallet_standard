@@ -77,6 +77,15 @@ in
   # disable dotenv since it breaks the variable interpolation supported by `direnv`
   dotenv.disableHint = true;
 
+  tasks = {
+    "rustfmt:nightly" = {
+      exec = ''
+        rustup toolchain install nightly-2025-11-06 --component rustfmt --force
+      '';
+      before = [ "devenv:enterShell" ];
+    };
+  };
+
   scripts = {
     "knope" = {
       exec = ''
