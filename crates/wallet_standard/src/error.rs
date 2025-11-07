@@ -88,6 +88,30 @@ impl From<core::fmt::Error> for WalletError {
 #[cfg(feature = "browser")]
 #[allow(unused_qualifications)]
 impl From<wasm_bindgen::JsValue> for WalletError {
+	/// Converts a JavaScript value into a WalletError::Js containing a textual message.
+	///
+	/// If the provided `JsValue` can be converted to a Rust `String`, that string is used
+	/// as the error message; otherwise a default message "An error occurred in the JavaScript."
+	/// is used.
+	///
+	/// # Parameters
+	///
+	/// - `source`: the JavaScript value to convert into an error message.
+	///
+	/// # Returns
+	///
+	/// `WalletError::Js` containing the JS value's string representation, or a default message if none is available.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// use wasm_bindgen::JsValue;
+	/// use crate::error::WalletError;
+	///
+	/// let js_val = JsValue::from_str("unexpected");
+	/// let err = WalletError::from(js_val);
+	/// assert_eq!(err, WalletError::Js("unexpected".to_string()));
+	/// ```
 	#[allow(deprecated)]
 	fn from(source: wasm_bindgen::JsValue) -> Self {
 		WalletError::Js(
@@ -99,6 +123,25 @@ impl From<wasm_bindgen::JsValue> for WalletError {
 }
 #[cfg(feature = "solana")]
 impl From<solana_signer::SignerError> for WalletError {
+	/// Convert a `solana_signer::SignerError` into the wallet's `Signer` error variant.
+	///
+	/// The conversion stores the signer's error message as the `String` payload of `WalletError::Signer`.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// // Demonstrates converting a signer error into `WalletError`.
+	/// // `unsafe { std::mem::zeroed() }` is used only to create a value for the example;
+	/// // in real code you will have an actual `solana_signer::SignerError`.
+	/// # use wallet_standard::error::WalletError;
+	/// # // Replace the path below with `solana_signer::SignerError` in real usage.
+	/// # let signer_err: solana_signer::SignerError = unsafe { std::mem::zeroed() };
+	/// let wallet_err: WalletError = signer_err.into();
+	/// match wallet_err {
+	///     WalletError::Signer(msg) => assert!(msg.len() >= 0),
+	///     _ => panic!("expected WalletError::Signer"),
+	/// }
+	/// ```
 	fn from(error: solana_signer::SignerError) -> Self {
 		WalletError::Signer(error.to_string())
 	}

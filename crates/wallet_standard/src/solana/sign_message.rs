@@ -64,10 +64,34 @@ pub trait SolanaSignatureOutput {
 /// This allows a Solana Signature to be used directly as a
 /// [`SolanaSignatureOutput`].
 impl SolanaSignatureOutput for Signature {
+	/// Get the contained Solana `Signature`.
+	///
+	/// This implementation never fails for a plain `Signature` and returns it wrapped in `Ok`.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let sig: Signature = unimplemented!(); // obtain a Signature from your context
+	/// let result = sig.try_signature();
+	/// assert_eq!(result.unwrap(), sig);
+	/// ```
 	fn try_signature(&self) -> WalletResult<Signature> {
 		Ok(*self)
 	}
 
+	/// Retrieves the contained Solana signature by value.
+	///
+	/// # Returns
+	///
+	/// The contained `Signature`.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let sig = Signature::default();
+	/// let s = sig.signature();
+	/// assert_eq!(s, sig);
+	/// ```
 	fn signature(&self) -> Signature {
 		*self
 	}
@@ -128,10 +152,36 @@ pub trait SolanaSignMessageOutput: SolanaSignatureOutput {
 /// This allows a tuple containing a signature, message, and optional signature
 /// type to be used as a [`SolanaSignatureOutput`].
 impl SolanaSignatureOutput for (Signature, Vec<u8>, Option<String>) {
+	/// Extracts the contained Solana `Signature` from the tuple.
+	///
+	/// # Returns
+	///
+	/// The contained `Signature` on success, or a `WalletError` if the signature is invalid.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let sig: Signature = /* obtain or construct a Signature */ unimplemented!();
+	/// let output = (sig, vec![], None::<String>);
+	/// let extracted = output.try_signature().unwrap();
+	/// assert_eq!(extracted, sig);
+	/// ```
 	fn try_signature(&self) -> WalletResult<Signature> {
 		self.0.try_signature()
 	}
 
+	/// Returns the tuple's contained Solana `Signature`, panicking if it is invalid.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// use solana_sdk::signature::Signature;
+	/// // Construct a signature from 64 zero bytes for demonstration purposes.
+	/// let sig = Signature::new(&[0u8; 64]);
+	/// let tuple = (sig, vec![], None::<String>);
+	/// let extracted = tuple.signature();
+	/// assert_eq!(extracted, tuple.0);
+	/// ```
 	fn signature(&self) -> Signature {
 		self.0.signature()
 	}
@@ -143,10 +193,42 @@ impl SolanaSignatureOutput for (Signature, Vec<u8>, Option<String>) {
 /// This allows a tuple containing a signature, message, and optional signature
 /// type to be used as a [`SolanaSignMessageOutput`].
 impl SolanaSignMessageOutput for (Signature, Vec<u8>, Option<String>) {
+	/// Returns the bytes that were signed.
+	///
+	/// A `Vec<u8>` containing the signed message bytes.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// use wallet_standard::solana::sign_message::SolanaSignMessageOutput;
+	/// use solana_sdk::signature::Signature;
+	///
+	/// let out = (Signature::default(), vec![1, 2, 3], None);
+	/// assert_eq!(out.signed_message(), vec![1, 2, 3]);
+	/// ```
 	fn signed_message(&self) -> Vec<u8> {
 		self.1.clone()
 	}
 
+	/// Returns the optional signature type associated with the signed message.
+	
+	///
+	
+	/// If `None`, the signature should be interpreted as Ed25519.
+	
+	///
+	
+	/// # Examples
+	
+	///
+	
+	/// ```
+	
+	/// let out: (solana_sdk::signature::Signature, Vec<u8>, Option<String>) = (solana_sdk::signature::Signature::default(), vec![], Some("ed25519".to_string()));
+	
+	/// assert_eq!(out.2.clone(), out.signature_type());
+	
+	/// ```
 	fn signature_type(&self) -> Option<String> {
 		self.2.clone()
 	}

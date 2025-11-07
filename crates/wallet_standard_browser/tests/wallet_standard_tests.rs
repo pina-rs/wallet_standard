@@ -24,6 +24,24 @@ struct TestWallet {
 }
 
 // Helper function to create a mock wallet for testing
+/// Create a JavaScript object representing a mock wallet for browser-based tests.
+///
+/// The returned `JsValue` is a plain object with properties:
+/// - `name`: "MockWallet"
+/// - `version`: "1.0.0"
+/// - `icon`: a data URL SVG string
+/// - `chains`: `["solana:mainnet", "solana:devnet"]`
+/// - `features`: an object containing `standard:connect`, `standard:disconnect`, and `solana:signMessage` (each with `version: "1.0.0"`)
+/// - `accounts`: an empty array
+///
+/// # Examples
+///
+/// ```
+/// let wallet_js = create_mock_wallet();
+/// // Convert to a JS object and inspect fields in tests:
+/// let name = js_sys::Reflect::get(&wallet_js, &wasm_bindgen::JsValue::from_str("name")).unwrap();
+/// assert_eq!(name.as_string().as_deref(), Some("MockWallet"));
+/// ```
 pub fn create_mock_wallet() -> JsValue {
 	// Create a mock wallet object
 	let wallet = Object::new();
@@ -107,6 +125,19 @@ pub fn create_mock_wallet() -> JsValue {
 }
 
 // Helper function to register a mock wallet
+/// Dispatches a `wallet-standard:register-wallet` `CustomEvent` on the global `window`
+/// with a mock wallet object as the event `detail`.
+///
+/// The function creates a mock wallet using `create_mock_wallet()` and sends it to the
+/// page by constructing and dispatching a `CustomEvent`. Returns `Ok(())` on success,
+/// or the `JsValue` error produced when creating or dispatching the event.
+///
+/// # Examples
+///
+/// ```no_run
+/// // In a wasm-bindgen test or browser context
+/// register_mock_wallet().unwrap();
+/// ```
 pub fn register_mock_wallet() -> Result<(), JsValue> {
 	let window = window().expect("no global window exists");
 	let wallet = create_mock_wallet();
@@ -123,6 +154,21 @@ pub fn register_mock_wallet() -> Result<(), JsValue> {
 	Ok(())
 }
 
+/// Verifies that a mock wallet can be converted into `BrowserWalletInfo` and that a `BrowserWallet` built from it has the expected basic properties.
+///
+/// This wasm-bindgen test creates a mock wallet, checks its name, version, icon format, supported chains, and feature list, then constructs a `BrowserWallet` and asserts its visible properties (name, underlying wallet version, and disconnected state).
+///
+/// # Examples
+///
+/// ```
+/// // This test demonstrates the expected happy-path for wallet creation:
+/// let wallet_js = create_mock_wallet();
+/// let wallet_info: BrowserWalletInfo = wallet_js.unchecked_into();
+/// assert_eq!(wallet_info.name(), "MockWallet");
+/// let wallet = BrowserWallet::from(wallet_info);
+/// assert_eq!(wallet.name(), "MockWallet");
+/// assert!(!wallet.connected());
+/// ```
 #[wasm_bindgen_test]
 pub async fn test_wallet_creation() {
 	// Create a mock wallet
@@ -158,6 +204,26 @@ pub async fn test_wallet_creation() {
 	assert!(!wallet.connected());
 }
 
+/// Ensures the browser wallet registry returns registered wallets and that a registered mock wallet is discoverable.
+///
+/// This wasm-bindgen test registers a mock wallet, retrieves the global wallet list, locates the mock wallet by name,
+/// and verifies basic properties and that a BrowserWallet created from the info is not connected.
+///
+/// # Examples
+///
+/// ```
+/// // Register a mock wallet and retrieve the list of wallets.
+/// register_mock_wallet().expect("Failed to register mock wallet");
+/// let wallets = wallet_standard_browser::get_wallets();
+/// let wallet_list = wallets.get();
+/// assert!(!wallet_list.is_empty());
+/// let mock_wallet = wallet_list.iter().find(|w| w.name() == "MockWallet").expect("Mock wallet not found");
+/// assert_eq!(mock_wallet.name(), "MockWallet");
+/// assert_eq!(mock_wallet.version(), "1.0.0");
+/// let wallet = BrowserWallet::from(mock_wallet.clone());
+/// assert_eq!(wallet.name(), "MockWallet");
+/// assert!(!wallet.connected());
+/// ```
 #[wasm_bindgen_test]
 pub async fn test_get_wallets() {
 	// Register a mock wallet

@@ -15,8 +15,15 @@ pub trait WalletSolanaPubkey {
 	/// [`solana_signer::Signer`] this is named differently.
 	fn try_solana_pubkey(&self) -> WalletResult<Pubkey>;
 
-	/// In order to prevent clashes with the built in
-	/// [`solana_signer::Signer`] this is named differently.
+	/// Get the wallet's Solana public key, returning the default `Pubkey` when the public key cannot be retrieved.
+	///
+	/// Named to avoid a clash with the built-in [`solana_signer::Signer`].
+	///
+	/// # Examples
+	///
+	/// ```no_run
+	/// let pk = wallet.solana_pubkey();
+	/// ```
 	fn solana_pubkey(&self) -> Pubkey {
 		self.try_solana_pubkey().unwrap_or_default()
 	}

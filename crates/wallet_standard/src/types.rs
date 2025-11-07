@@ -274,41 +274,90 @@ pub trait Wallet {
 	/// If no account is connected, this returns `None`.
 	fn wallet_account(&self) -> Option<Self::Account>;
 
-	/// Returns the name of the wallet.
+	/// Get the wallet's display name.
 	///
-	/// This is a convenience method that delegates to `wallet().name()`.
+	/// # Returns
+	///
+	/// `String` with the wallet's name.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// // Assuming `w` implements `Wallet`
+	/// let name = w.name();
+	/// assert!(!name.is_empty());
+	/// ```
 	fn name(&self) -> String {
 		self.wallet().name()
 	}
 
-	/// Returns the icon of the wallet.
+	/// Retrieves the wallet's icon.
 	///
-	/// This is a convenience method that delegates to `wallet().icon()`.
+	/// The icon is the wallet's canonical, read-only representation (typically a data URL).
+	///
+	/// # Examples
+	///
+	/// ```
+	/// // `w` is any type implementing the `Wallet` trait.
+	/// let icon = w.icon();
+	/// assert!(!icon.is_empty());
+	/// ```
 	fn icon(&self) -> String {
 		self.wallet().icon()
 	}
 
-	/// Returns whether the wallet is connected.
+	/// Indicates whether the wallet currently has a connected account.
 	///
-	/// A wallet is considered connected if it has a current account.
+	/// # Returns
+	///
+	/// `true` if the wallet has a current account, `false` otherwise.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// // `wallet` implements the `Wallet` trait
+	/// let is_connected = wallet.connected();
+	/// assert_eq!(is_connected, wallet.wallet_account().is_some());
+	/// ```
 	fn connected(&self) -> bool {
 		self.wallet_account().is_some()
 	}
 
-	/// Returns the public key of the currently connected account, if any.
+	/// Retrieve the public key of the currently connected account.
 	///
-	/// If no account is connected, this returns `None`.
+	/// # Returns
+	///
+	/// `Some(Vec<u8>)` with the account's raw public key bytes if an account is connected, `None` if no account is connected.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// // `wallet` implements the `Wallet` trait.
+	/// if let Some(pk) = wallet.try_public_key() {
+	///     // `pk` contains the account's public key bytes
+	///     assert!(!pk.is_empty());
+	/// } else {
+	///     // no account is connected
+	///     assert!(wallet.wallet_account().is_none());
+	/// }
+	/// ```
 	fn try_public_key(&self) -> Option<Vec<u8>> {
 		self.wallet_account().map(|account| account.public_key())
 	}
 
-	/// Returns the public key of the currently connected account.
+	/// Get the public key of the currently connected account.
 	///
 	/// # Panics
 	///
-	/// This method will panic if no account is connected. Use
-	/// `try_public_key()` if you want to handle the case where no account is
-	/// connected.
+	/// Panics if no account is connected.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// // `wallet` must have a connected account for this to succeed.
+	/// let pk = wallet.public_key();
+	/// assert!(!pk.is_empty());
+	/// ```
 	fn public_key(&self) -> Vec<u8> {
 		self.try_public_key().unwrap()
 	}

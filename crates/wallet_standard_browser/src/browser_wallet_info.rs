@@ -271,6 +271,20 @@ impl BrowserWalletInfo {
 		self.get_feature_option::<T>().is_some()
 	}
 
+	/// Determines whether the wallet supports the `StandardConnect`, `StandardEvents`, and `StandardDisconnect` features.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// // `info` is a BrowserWalletInfo (or type implementing the same API)
+	/// // that may be obtained from the JS bindings.
+	/// let compatible = info.is_standard_compatible();
+	/// // `compatible` is true only when connect, events and disconnect features are all present.
+	/// ```
+	///
+	/// # Returns
+	///
+	/// `true` if the wallet supports all three Standard features (`StandardConnectFeature`, `StandardEventsFeature`, `StandardDisconnectFeature`), `false` otherwise.
 	pub fn is_standard_compatible(&self) -> bool {
 		self.is_feature_supported::<StandardConnectFeature>()
 			&& self.is_feature_supported::<StandardEventsFeature>()
@@ -282,6 +296,13 @@ impl BrowserWalletInfo {
 pub struct BrowserWalletInfoFeatures(#[serde(with = "serde_wasm_bindgen::preserve")] Object);
 
 impl BrowserWalletInfoFeatures {
+	/// Inserts a feature into the internal JS features object under the feature's canonical name.
+	///
+	/// This stores the feature's JS representation at the key `T::NAME` inside the wrapped `Object`.
+	///
+	/// # Panics
+	///
+	/// Panics if setting the property on the underlying JS object fails.
 	pub fn add_feature<T: FeatureFromJs>(&self, feature: &T) {
 		Reflect::set(&self.0, &JsValue::from_str(T::NAME), feature.as_ref()).unwrap();
 	}
@@ -348,6 +369,23 @@ impl PartialEq for BrowserWalletAccountInfo {
 impl Eq for BrowserWalletAccountInfo {}
 
 impl Hash for BrowserWalletAccountInfo {
+	/// Hashes the account's identifying fields into the provided hasher.
+	///
+	/// Inserts the account's address, public key, chains, features, label, and icon
+	/// into `state` in that order to produce a combined hash for the account.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// use std::hash::{Hash, Hasher};
+	/// use std::collections::hash_map::DefaultHasher;
+	///
+	/// let mut hasher = DefaultHasher::new();
+	/// // Hash a tuple with the same field order used by the account implementation.
+	/// ("addr", vec![1u8], vec!["chain".to_string()], vec!["feat".to_string()], Some("lbl"), Some("ico"))
+	///     .hash(&mut hasher);
+	/// let _digest = hasher.finish();
+	/// ```
 	fn hash<H: Hasher>(&self, state: &mut H) {
 		self.address().hash(state);
 		self.public_key().hash(state);
@@ -375,12 +413,26 @@ pub struct BrowserWalletAccountInfoProps {
 }
 
 impl BrowserWalletAccountInfo {
-	/// Create a new `BrowserWalletAccountInfo` from a
-	/// `BrowserWalletAccountInfoProps`.
+	/// Constructs a `BrowserWalletAccountInfo` from the given `BrowserWalletAccountInfoProps`.
+	///
+	/// On success returns a `BrowserWalletAccountInfo` that can be passed to JS interop APIs.
 	///
 	/// # Errors
 	///
-	/// Returns an error if the `BrowserWalletAccountInfoProps` is not valid.
+	/// Returns a `WalletError` if serialization of `props` to a JS value fails or if the resulting
+	/// JS value cannot be converted into a `BrowserWalletAccountInfo`.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let props = BrowserWalletAccountInfoProps::builder()
+	///     .address("addr://example".to_string())
+	///     .public_key(vec![])
+	///     .build();
+	///
+	/// let account = BrowserWalletAccountInfo::try_new(&props).unwrap();
+	/// assert_eq!(account.address(), "addr://example");
+	/// ```
 	pub fn try_new(props: &BrowserWalletAccountInfoProps) -> WalletResult<Self> {
 		let result = serde_wasm_bindgen::to_value(props)?.dyn_into::<BrowserWalletAccountInfo>()?;
 
@@ -389,6 +441,19 @@ impl BrowserWalletAccountInfo {
 }
 
 impl WalletAccountInfo for BrowserWalletAccountInfo {
+	/// Gets the account address.
+	///
+	/// # Returns
+	///
+	/// `String` containing the account's address.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// // given a BrowserWalletAccountInfo `acct` obtained from JS bindings:
+	/// let addr = acct.address();
+	/// assert!(!addr.is_empty());
+	/// ```
 	fn address(&self) -> String {
 		self._address()
 	}
