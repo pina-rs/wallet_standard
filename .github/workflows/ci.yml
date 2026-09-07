@@ -1,8 +1,8 @@
 name: "ci"
 
 permissions:
-  pull-requests: write
-  contents: write
+  contents: read
+
 on:
   push:
     branches:
@@ -18,30 +18,56 @@ concurrency:
 jobs:
   lint:
     timeout-minutes: 60
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: setup
         uses: ./.github/actions/devenv
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: lint clippy
-        run: lint:clippy
-        shell: devenv shell -- bash -e {0}
+      - name: lint all
+        run: lint:all
+        shell: devenv shell -c -- bash -e {0}
 
-      - name: lint formatting
-        run: lint:format
-        shell: devenv shell -- bash -e {0}
+  security:
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: audit Rust dependencies
+        run: security:audit
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: check dependency policy
+        run: security:deny
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: audit GitHub Actions workflows
+        run: security:zizmor
+        shell: devenv shell -c -- bash -e {0}
 
   test:
     timeout-minutes: 60
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: setup
         uses: ./.github/actions/devenv
@@ -49,16 +75,17 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: test `wallet_standard`
-        run:
-          cargo test_wallet_standard
-        shell: devenv shell -- bash -e {0}
+        run: cargo test_wallet_standard
+        shell: devenv shell -c -- bash -e {0}
 
   coverage:
     timeout-minutes: 60
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: setup
         uses: ./.github/actions/devenv
@@ -67,25 +94,28 @@ jobs:
 
       - name: coverage `wallet_standard`
         run: cargo coverage_wallet_standard
-        shell: devenv shell -- bash -e {0}
+        shell: devenv shell -c -- bash -e {0}
 
       - name: coverage `codecov_report`
         run: cargo coverage_codecov_report
-        shell: devenv shell -- bash -e {0}
+        shell: devenv shell -c -- bash -e {0}
 
       - name: upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           files: codecov.json
           fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     timeout-minutes: 60
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: setup
         uses: ./.github/actions/devenv
@@ -94,8 +124,8 @@ jobs:
 
       - name: build
         run: cargo build --locked
-        shell: devenv shell -- bash -e {0}
+        shell: devenv shell -c -- bash -e {0}
 
       - name: build all features
         run: build:all
-        shell: devenv shell -- bash -e {0}
+        shell: devenv shell -c -- bash -e {0}
