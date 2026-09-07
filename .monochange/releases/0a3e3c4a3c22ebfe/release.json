@@ -1,0 +1,338 @@
+{
+	"schema_version": "0.5",
+	"kind": "monochange.releaseRecord",
+	"created_at": "2026-09-07T15:42:16Z",
+	"command": "release",
+	"version": "0.6.0",
+	"versions": {
+		"core": "0.6.0"
+	},
+	"release_targets": [
+		{
+			"id": "core",
+			"kind": "group",
+			"version": "0.6.0",
+			"version_format": "primary",
+			"tag": true,
+			"release": true,
+			"tag_name": "v0.6.0",
+			"members": [
+				"wallet_standard",
+				"wallet_standard_browser"
+			]
+		}
+	],
+	"released_packages": [
+		"wallet_standard",
+		"wallet_standard_browser"
+	],
+	"changed_files": [
+		"Cargo.lock",
+		"Cargo.toml",
+		"changelog.md",
+		"crates/wallet_standard/Cargo.toml",
+		"crates/wallet_standard_browser/Cargo.toml"
+	],
+	"package_publications": [
+		{
+			"package": "wallet_standard",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.6.0",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "wallet_standard_browser",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.6.0",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		}
+	],
+	"updated_changelogs": [
+		"changelog.md"
+	],
+	"deleted_changesets": [
+		".changeset/agave-4-and-version-unification.md",
+		".changeset/migrate-release-automation-to-monochange.md"
+	],
+	"changesets": [
+		{
+			"path": ".changeset/agave-4-and-version-unification.md",
+			"summary": "Update Solana dependencies to Agave 4.x",
+			"details": "Update the Solana dependencies to the latest Agave 4.x crates, raise the MSRV to 1.89.0, and unify both crates on a single workspace version.",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				},
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "75dc9a83cd99071a47bf72041319fb44a5c86b19",
+						"short_sha": "75dc9a8",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/75dc9a83cd99071a47bf72041319fb44a5c86b19",
+						"authored_at": "2026-09-07T15:48:33+01:00",
+						"committed_at": "2026-09-07T15:48:33+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#44",
+						"title": "build: manage releases with monochange",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/44",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "75dc9a83cd99071a47bf72041319fb44a5c86b19",
+						"short_sha": "75dc9a8",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/75dc9a83cd99071a47bf72041319fb44a5c86b19",
+						"authored_at": "2026-09-07T15:48:33+01:00",
+						"committed_at": "2026-09-07T15:48:33+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#44",
+						"title": "build: manage releases with monochange",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/44",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		},
+		{
+			"path": ".changeset/migrate-release-automation-to-monochange.md",
+			"summary": "Migrate release automation to monochange",
+			"details": "Replace knope with monochange: a release PR flow on every push to main, crates.io trusted publishing through the `publisher` environment, and `release:local` / `publish:local` devenv scripts as a manual fallback.",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "none"
+				},
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "none"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "75dc9a83cd99071a47bf72041319fb44a5c86b19",
+						"short_sha": "75dc9a8",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/75dc9a83cd99071a47bf72041319fb44a5c86b19",
+						"authored_at": "2026-09-07T15:48:33+01:00",
+						"committed_at": "2026-09-07T15:48:33+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#44",
+						"title": "build: manage releases with monochange",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/44",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "75dc9a83cd99071a47bf72041319fb44a5c86b19",
+						"short_sha": "75dc9a8",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/75dc9a83cd99071a47bf72041319fb44a5c86b19",
+						"authored_at": "2026-09-07T15:48:33+01:00",
+						"committed_at": "2026-09-07T15:48:33+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#44",
+						"title": "build: manage releases with monochange",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/44",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		}
+	],
+	"changelogs": [
+		{
+			"owner_id": "core",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "[0.6.0](https://github.com/pina-rs/wallet_standard/releases/tag/v0.6.0) (2026-09-07)",
+				"summary": [
+					"Grouped release for `core`."
+				],
+				"sections": [
+					{
+						"title": "Breaking Changes",
+						"collapsed": false,
+						"entries": [
+							"#### Update Solana dependencies to Agave 4.x\n_Packages:_ _wallet_standard_, _wallet_standard_browser_\n\nUpdate the Solana dependencies to the latest Agave 4.x crates, raise the MSRV to 1.89.0, and unify both crates on a single workspace version.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #44](https://github.com/pina-rs/wallet_standard/pull/44)"
+						]
+					},
+					{
+						"title": "Notes",
+						"collapsed": false,
+						"entries": [
+							"#### Migrate release automation to monochange\n_Packages:_ _wallet_standard_, _wallet_standard_browser_\n\nReplace knope with monochange: a release PR flow on every push to main, crates.io trusted publishing through the `publisher` environment, and `release:local` / `publish:local` devenv scripts as a manual fallback.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #44](https://github.com/pina-rs/wallet_standard/pull/44)"
+						]
+					}
+				]
+			},
+			"rendered": "## [0.6.0](https://github.com/pina-rs/wallet_standard/releases/tag/v0.6.0) (2026-09-07)\n\nGrouped release for `core`.\n### Breaking Changes\n\n#### Update Solana dependencies to Agave 4.x\n_Packages:_ _wallet_standard_, _wallet_standard_browser_\n\nUpdate the Solana dependencies to the latest Agave 4.x crates, raise the MSRV to 1.89.0, and unify both crates on a single workspace version.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #44](https://github.com/pina-rs/wallet_standard/pull/44)\n\n### Notes\n\n#### Migrate release automation to monochange\n_Packages:_ _wallet_standard_, _wallet_standard_browser_\n\nReplace knope with monochange: a release PR flow on every push to main, crates.io trusted publishing through the `publisher` environment, and `release:local` / `publish:local` devenv scripts as a manual fallback.\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #44](https://github.com/pina-rs/wallet_standard/pull/44)"
+		}
+	],
+	"provider": {
+		"kind": "github",
+		"owner": "pina-rs",
+		"repo": "wallet_standard",
+		"host": null
+	}
+}
