@@ -1,0 +1,16 @@
+# Summary
+
+- [Introduction](./index.md)
+- [The Wallet Standard](./wallet-standard.md)
+- [Getting Started](./getting-started.md)
+- [Crates and Features](./crates-and-features.md)
+- [Wallets](./wallets/index.md)
+  - [Registering a Wallet](./wallets/register.md)
+  - [Signing Messages](./wallets/sign-message.md)
+  - [Signing Transactions](./wallets/sign-transaction.md)
+  - [Sign in With Solana](./wallets/sign-in.md)
+- [Browser Integration](./browser.md)
+- [Testing](./testing.md)
+- [Security](./security.md)
+- [Development Workflow](./development-workflow.md)
+- [CI and Releases](./ci-and-releases.md)

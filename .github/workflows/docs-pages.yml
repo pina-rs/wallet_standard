@@ -1,0 +1,66 @@
+name: "docs-pages"
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - "readme.md"
+      - "devenv.nix"
+      - ".github/workflows/docs-pages.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build documentation
+    if: github.repository_owner == 'pina-rs'
+    permissions:
+      contents: read # Read documentation and source files from the repository.
+      pages: read # Read the GitHub Pages site configuration.
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: configure github pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: build documentation
+        run: docs:build
+        shell: devenv shell -c -- bash -e {0}
+
+      - name: upload pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: docs/book
+
+  deploy:
+    name: deploy documentation
+    if: github.repository_owner == 'pina-rs'
+    needs: build
+    permissions:
+      id-token: write # Authenticate the Pages deployment with GitHub OIDC.
+      pages: write # Publish the built documentation artifact to GitHub Pages.
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: deploy to github pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

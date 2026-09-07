@@ -209,9 +209,17 @@ in
     };
     "build:docs" = {
       exec = ''
-        RUSTUP_TOOLCHAIN="nightly" RUSTDOCFLAGS="--cfg docsrs" cargo doc --workspace
+        set -euo pipefail
+        mdbook build "$DEVENV_ROOT/docs"
       '';
-      description = "Build documentation site.";
+      description = "Build the mdBook documentation.";
+    };
+    "docs:serve" = {
+      exec = ''
+        set -euo pipefail
+        mdbook serve "$DEVENV_ROOT/docs"
+      '';
+      description = "Serve the mdBook documentation locally with live reload.";
     };
     "test:all" = {
       exec = ''
