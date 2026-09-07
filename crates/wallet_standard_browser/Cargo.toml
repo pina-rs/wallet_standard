@@ -50,3 +50,7 @@ solana = [
 	"dep:solana-signature",
 	"wallet_standard/solana",
 ]
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { default-features = false, features = ["wasm_js"], version = "^0.3" }
+getrandom-04 = { default-features = false, features = ["wasm_js"], package = "getrandom", version = "^0.4" }

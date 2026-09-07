@@ -246,8 +246,8 @@ impl WalletSolanaSignMessage for MyWallet {
 	async fn sign_message_async(&self, message: impl Into<Vec<u8>>) -> WalletResult<Self::Output> {
 		let message_bytes = message.into();
 
-		// In a real implementation, you would use the wallet's signing mechanism
-		// This is just a placeholder example using a keypair
+		// In a real implementation, you would use the wallet's signing
+		// mechanism This is just a placeholder example using a keypair
 		let keypair = Keypair::new(); // In reality, this would be the user's keypair
 		let signature = keypair.sign_message(&message_bytes);
 
