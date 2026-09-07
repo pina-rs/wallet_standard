@@ -8,7 +8,7 @@ edition = "2024"
 homepage = "https://github.com/ifiokjr/wallet_standard"
 license = "Unlicense"
 repository = "https://github.com/ifiokjr/wallet_standard"
-rust-version = "1.85.0"
+rust-version = "1.89.0"
 
 [workspace.dependencies]
 async-trait = { default-features = false, version = "^0.1" }
@@ -22,17 +22,17 @@ serde-wasm-bindgen = { default-features = false, version = "^0.6" }
 serde_bytes = { default-features = false, version = "^0.11" }
 solana-commitment-config = { default-features = false, features = ["serde"], version = "^3" }
 solana-keypair = { default-features = false, version = "^3" }
-solana-message = { default-features = false, features = ["bincode", "serde"], version = "^3" }
+solana-message = { default-features = false, features = ["serde"], version = ">=4.2.3, <4.5.0" }
 solana-program-error = { default-features = false, features = ["borsh", "serde"], version = "^3" }
-solana-pubkey = { default-features = false, features = ["bytemuck", "borsh", "serde"], version = "^3" }
-solana-signature = { default-features = false, features = ["bytemuck", "serde", "verify"], version = "^3" }
+solana-pubkey = { default-features = false, features = ["bytemuck", "borsh", "serde"], version = ">=4.2.0, <4.3.0" }
+solana-signature = { default-features = false, features = ["bytemuck", "serde", "verify"], version = ">=3.4.1, <3.5.0" }
 solana-signer = { default-features = false, version = "^3" }
-solana-system-interface = { default-features = false, features = ["bincode", "serde"], version = "^2" }
-solana-transaction = { default-features = false, features = ["bincode", "serde"], version = "^3" }
+solana-system-interface = { default-features = false, features = ["bincode", "serde"], version = ">=3.2.0, <3.3.0" }
+solana-transaction = { default-features = false, features = ["serde"], version = ">=4.1.4, <4.2.0" }
 solana-transaction-error = { default-features = false, features = ["serde"], version = "^3" }
 thiserror = { default-features = false, version = "^2" }
 tokio = { default-features = false, version = "^1" }
-typed-builder = { default-features = false, version = "^0.22" }
+typed-builder = { default-features = false, version = "^0.23" }
 wasm-bindgen = { default-features = false, version = "^0.2" }
 wasm-bindgen-futures = { default-features = false, version = "^0.4" }
 wasm-bindgen-test = { default-features = false, version = "^0.3" }
@@ -43,15 +43,14 @@ wallet_standard = { path = "./crates/wallet_standard", version = "0.5.1" }
 wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.5.0" }
 
 [workspace.metadata.bin]
-cargo-dylint = { version = "5.0.0" }
-cargo-binstall = { version = "1.15.10" }
-cargo-llvm-cov = { version = "0.6.19" }
-cargo-nextest = { version = "0.9.111" }
-cargo-semver-checks = { version = "0.44.0" }
-dylint-link = { version = "5.0.0", bins = ["dylint-link"] }
+cargo-dylint = { version = "6.0.4" }
+cargo-llvm-cov = { version = "0.9.1" }
+cargo-nextest = { version = "0.9.143" }
+cargo-semver-checks = { version = "0.50.0" }
+dylint-link = { version = "6.0.4", bins = ["dylint-link"] }
 knope = { version = "0.21.5", bins = ["knope"] }
 wait-for-them = { version = "0.5.1", bins = ["wait-for-them"] }
-wasm-bindgen-cli = { version = "0.2.104", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
+wasm-bindgen-cli = { version = "0.2.128", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
 
 [workspace.lints.rust]
 # Group lints

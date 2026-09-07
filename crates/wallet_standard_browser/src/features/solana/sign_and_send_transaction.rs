@@ -113,7 +113,8 @@ impl SolanaSignAndSendTransactionFeature {
 		let supported_transaction_versions = self.supported_transaction_versions()?;
 
 		for input in &inputs {
-			// Exit early if any of the versioned transactions are not supported.
+			// Exit early if any of the versioned transactions are not
+			// supported.
 			if !supported_transaction_versions.contains(&input.props.transaction.version()) {
 				return Err(WalletError::UnsupportedTransactionVersion);
 			}
