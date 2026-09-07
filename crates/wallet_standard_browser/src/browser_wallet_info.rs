@@ -1,5 +1,3 @@
-#![allow(unsafe_code)]
-
 use std::collections::hash_map::DefaultHasher;
 use std::hash::Hash;
 use std::hash::Hasher;
@@ -44,7 +42,6 @@ extern "C" {
 	/// @param wallet Wallet to register.
 	///
 	/// @group Wallet
-	#[allow(unsafe_code)]
 	#[wasm_bindgen(js_name = registerWallet, catch)]
 	pub fn register_wallet(wallet: &BrowserWalletInfo) -> Result<(), JsValue>;
 }
@@ -283,7 +280,8 @@ pub struct BrowserWalletInfoFeatures(#[serde(with = "serde_wasm_bindgen::preserv
 
 impl BrowserWalletInfoFeatures {
 	pub fn add_feature<T: FeatureFromJs>(&self, feature: &T) {
-		Reflect::set(&self.0, &JsValue::from_str(T::NAME), feature.as_ref()).unwrap();
+		Reflect::set(&self.0, &JsValue::from_str(T::NAME), feature.as_ref())
+			.expect("failed to attach wallet feature object");
 	}
 }
 

@@ -13,8 +13,8 @@ use wallet_standard_browser::prelude::*;
 let wallets = get_wallets();
 let phantom = wallets.get("Phantom").ok_or(WalletError::WalletNotFound)?;
 
-let connected = phantom.connect().await?;
-let account = connected.accounts().first().unwrap();
+let accounts = phantom.connect().await?;
+let account = accounts.first().unwrap();
 ```
 
 `get_wallets()` returns a snapshot of every wallet registered on the page at call time. Each returned `BrowserWallet` implements `Wallet`, `WalletStandardConnect`, `WalletStandardDisconnect` and (with the `solana` feature) the full Solana feature set — including `WalletSolanaSignMessage`, `WalletSolanaSignTransaction`, `WalletSolanaSignAndSendTransaction` and `WalletSolanaSignIn`.

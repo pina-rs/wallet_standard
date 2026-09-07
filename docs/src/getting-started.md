@@ -50,10 +50,10 @@ for (name, wallet) in wallets.iter() {
 
 // Pick one and connect.
 let mut wallet = wallets.get("Phantom").expect("phantom is installed");
-let output = wallet.connect().await?;
+let accounts = wallet.connect().await?;
 
 // The authorized account.
-let account = output.accounts().first().unwrap();
+let account = accounts.first().unwrap();
 log::info!("connected as {}", account.address());
 ```
 

@@ -1,5 +1,3 @@
-#![allow(unsafe_code)]
-
 use async_trait::async_trait;
 use wallet_standard::STANDARD_CONNECT;
 use wallet_standard::StandardConnectInput;

@@ -1,5 +1,3 @@
-#![allow(unsafe_code)]
-
 use js_sys::Function;
 use js_sys::Object;
 use wallet_standard::ConnectedWalletStandardEvents;

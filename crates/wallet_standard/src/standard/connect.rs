@@ -81,7 +81,7 @@ pub struct StandardConnectInput {
 	/// If set to `false` or not provided, the wallet may display UI to prompt
 	/// the user to authorize accounts.
 	#[builder(default, setter(into, strip_option))]
-	silent: Option<bool>,
+	pub silent: Option<bool>,
 }
 
 /// Trait for wallets that support connecting to authorize accounts.
