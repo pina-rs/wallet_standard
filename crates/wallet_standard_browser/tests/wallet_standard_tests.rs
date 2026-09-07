@@ -15,14 +15,6 @@ use web_sys::window;
 // Configure wasm_bindgen_test to run in a browser environment
 wasm_bindgen_test_configure!(run_in_browser);
 
-struct TestWallet {
-	name: String,
-	version: String,
-	icon: String,
-	chains: Vec<String>,
-	features: Vec<String>,
-}
-
 // Helper function to create a mock wallet for testing
 pub fn create_mock_wallet() -> JsValue {
 	// Create a mock wallet object

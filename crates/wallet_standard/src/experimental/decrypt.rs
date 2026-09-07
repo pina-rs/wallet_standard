@@ -17,11 +17,11 @@ pub trait ExperimentalDecryptOutput {
 pub struct ExperimentalDecryptProps {
 	/// Cipher to use for decryption.
 	#[builder(setter(into))]
-	cipher: String,
+	pub cipher: String,
 	/// Public key to derive a shared key to decrypt the data using.
 	#[builder(setter(into))]
 	#[serde(with = "serde_bytes")]
-	public_key: Vec<u8>,
+	pub public_key: Vec<u8>,
 	/// Ciphertext to decrypt.
 	#[builder(setter(into))]
 	#[serde(with = "serde_bytes")]
@@ -34,7 +34,7 @@ pub struct ExperimentalDecryptProps {
 	///
 	/// Valid values `0 | 8 | 16 | 32 | 64 | 128 | 256 | 512 | 1024 | 2048`
 	#[builder(default, setter(into, strip_option))]
-	padding: Option<u8>,
+	pub padding: Option<u8>,
 }
 
 #[async_trait(?Send)]

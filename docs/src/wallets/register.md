@@ -121,13 +121,10 @@ impl Wallet for MyWallet {
 
 ```rust,ignore
 impl WalletStandardConnect for MyWallet {
-	type Output = StandardConnectOutputProperties;
-
-	async fn connect(&mut self) -> WalletResult<Self::Output> {
-		// present your authorization UI, then:
-		Ok(StandardConnectOutputProperties::builder()
-			.accounts(vec![/* authorized accounts */])
-			.build())
+	async fn connect(&mut self) -> WalletResult<Vec<Self::Account>> {
+		// present your authorization UI, then return the
+		// accounts the app is authorized to use:
+		Ok(vec![/* authorized accounts */])
 	}
 }
 
