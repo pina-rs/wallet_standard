@@ -1,0 +1,17 @@
+[book]
+title = "Wallet Standard Book"
+authors = ["pina-rs contributors"]
+language = "en"
+src = "src"
+description = "Comprehensive documentation for the wasm compatible Rust implementation of the Wallet Standard."
+
+[build]
+build-dir = "book"
+create-missing = false
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/pina-rs/wallet_standard"
+edit-url-template = "https://github.com/pina-rs/wallet_standard/edit/main/docs/{path}"
+site-url = "/wallet_standard/"
