@@ -3,11 +3,12 @@ members = ["crates/wallet_standard", "crates/wallet_standard_browser"]
 resolver = "2"
 
 [workspace.package]
+version = "0.5.1"
 authors = ["Ifiok Jr. <ifiokotung@gmail.com>"]
 edition = "2024"
-homepage = "https://github.com/ifiokjr/wallet_standard"
+homepage = "https://github.com/pina-rs/wallet_standard"
 license = "Unlicense"
-repository = "https://github.com/ifiokjr/wallet_standard"
+repository = "https://github.com/pina-rs/wallet_standard"
 rust-version = "1.89.0"
 
 [workspace.dependencies]
@@ -38,9 +39,9 @@ wasm-bindgen-futures = { default-features = false, version = "^0.4" }
 wasm-bindgen-test = { default-features = false, version = "^0.3" }
 web-sys = { default-features = false, version = "^0.3" }
 
-# publishable crates
+# publishable crates (versions unified through `workspace.package.version`)
 wallet_standard = { path = "./crates/wallet_standard", version = "0.5.1" }
-wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.5.0" }
+wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.5.1" }
 
 [workspace.metadata.bin]
 cargo-dylint = { version = "6.0.4" }
@@ -48,8 +49,6 @@ cargo-llvm-cov = { version = "0.9.1" }
 cargo-nextest = { version = "0.9.143" }
 cargo-semver-checks = { version = "0.50.0" }
 dylint-link = { version = "6.0.4", bins = ["dylint-link"] }
-knope = { version = "0.21.5", bins = ["knope"] }
-wait-for-them = { version = "0.5.1", bins = ["wait-for-them"] }
 wasm-bindgen-cli = { version = "0.2.128", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
 
 [workspace.lints.rust]
