@@ -107,6 +107,31 @@ trusted_publishing = { enabled = true, repository = "pina-rs/wallet_standard", w
 [ecosystems.cargo.publish_order]
 dependency_fields = ["dependencies", "build-dependencies"]
 
+# cargo-semver-checks produces proof-strength Rust compatibility evidence in
+# place of the syntax-level `cargo/public-api` findings. Only
+# `--detection-level semantic` runs the matrix; every other level ignores it.
+[ecosystems.cargo.semver_checks]
+enabled = true
+timeout_seconds = 900
+
+# Both crates expose their surface through features, so one cell is not enough:
+# a break hidden behind `solana` or `browser` stays invisible to the default
+# build. Every configured cell must complete before a clean result replaces the
+# conservative syntax findings, so a cell that cannot run is worse than no cell
+# at all: it forces `partial` coverage and review on every pull request.
+#
+# A `wasm32-unknown-unknown` cell is deliberately absent. cargo-semver-checks
+# 0.50.0 cannot read target information from rustc 1.98.1 for that target
+# ("output of --print=file-names missing"), so the cell fails before it checks
+# anything. Add it once the tool supports the toolchain.
+[[ecosystems.cargo.semver_checks.matrix]]
+name = "default"
+feature_mode = "default"
+
+[[ecosystems.cargo.semver_checks.matrix]]
+name = "all-features"
+feature_mode = "all"
+
 [changesets.affected]
 enabled = true
 required = true
