@@ -71,6 +71,7 @@ pub struct ExperimentalEncryptInput {
 }
 
 #[async_trait(?Send)]
+
 impl WalletExperimentalEncrypt for BrowserWallet {
 	type Output = BrowserExperimentalEncryptOutput;
 

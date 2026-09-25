@@ -187,7 +187,6 @@ fn verify_output_text(
 	confirm_field_exists!(input.request_id, "Request ID");
 
 	// TODO check resources
-
 	Ok(())
 }
 
@@ -255,6 +254,7 @@ pub fn create_sign_in_message_text(input: &SolanaSignInInput) -> WalletResult<St
 
 	if let Some(ref resources) = input.resources {
 		fields.push("Resources:".to_string());
+
 		for resource in resources {
 			fields.push(format!("- {resource}"));
 		}

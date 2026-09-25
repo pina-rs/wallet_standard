@@ -137,6 +137,7 @@ impl_feature_from_js!(
 );
 
 #[async_trait(?Send)]
+
 impl WalletSolanaSignAndSendTransaction for BrowserWallet {
 	type Output = BrowserSolanaSignAndSendTransactionOutput;
 

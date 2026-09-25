@@ -64,6 +64,7 @@ pub struct ExperimentalDecryptInput {
 }
 
 #[async_trait(?Send)]
+
 impl WalletExperimentalDecrypt for BrowserWallet {
 	type Output = BrowserExperimentalDecryptOutput;
 

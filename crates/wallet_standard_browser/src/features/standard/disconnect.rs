@@ -31,6 +31,7 @@ impl StandardDisconnectFeature {
 }
 
 #[async_trait(?Send)]
+
 impl WalletStandardDisconnect for BrowserWallet {
 	async fn disconnect(&mut self) -> WalletResult<()> {
 		if !self.connected() {

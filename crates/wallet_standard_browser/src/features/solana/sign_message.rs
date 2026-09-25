@@ -123,6 +123,7 @@ impl SolanaSignMessageFeature {
 }
 
 #[async_trait(?Send)]
+
 impl WalletSolanaSignMessage for BrowserWallet {
 	type Output = BrowserSolanaSignMessageOutput;
 

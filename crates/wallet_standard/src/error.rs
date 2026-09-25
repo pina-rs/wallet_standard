@@ -87,6 +87,7 @@ impl From<core::fmt::Error> for WalletError {
 
 #[cfg(feature = "browser")]
 #[allow(unused_qualifications)]
+
 impl From<wasm_bindgen::JsValue> for WalletError {
 	#[allow(deprecated)]
 	fn from(source: wasm_bindgen::JsValue) -> Self {
@@ -97,7 +98,9 @@ impl From<wasm_bindgen::JsValue> for WalletError {
 		)
 	}
 }
+
 #[cfg(feature = "solana")]
+
 impl From<solana_signer::SignerError> for WalletError {
 	fn from(error: solana_signer::SignerError) -> Self {
 		WalletError::Signer(error.to_string())
@@ -105,6 +108,7 @@ impl From<solana_signer::SignerError> for WalletError {
 }
 
 #[cfg(feature = "browser")]
+
 impl From<serde_wasm_bindgen::Error> for WalletError {
 	fn from(source: serde_wasm_bindgen::Error) -> Self {
 		WalletError::Serde(source.to_string())

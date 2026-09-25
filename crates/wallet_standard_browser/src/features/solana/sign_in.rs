@@ -102,6 +102,7 @@ impl SolanaSignInFeature {
 }
 
 #[async_trait(?Send)]
+
 impl WalletSolanaSignIn for BrowserWallet {
 	type Output = BrowserSolanaSignInOutput;
 

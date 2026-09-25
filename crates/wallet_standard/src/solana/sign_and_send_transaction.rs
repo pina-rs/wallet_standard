@@ -12,6 +12,7 @@ use crate::WalletResult;
 pub const SOLANA_SIGN_AND_SEND_TRANSACTION: &str = "solana:signAndSendTransaction";
 
 pub trait SolanaSignAndSendTransactionOutput: SolanaSignatureOutput {}
+
 impl<T> SolanaSignAndSendTransactionOutput for T where T: SolanaSignatureOutput {}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]

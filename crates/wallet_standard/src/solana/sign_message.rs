@@ -248,6 +248,7 @@ pub trait WalletSolanaSignMessage {
 /// `WalletSolanaSignMessage`, which is useful for testing and simple
 /// implementations.
 #[async_trait(?Send)]
+
 impl WalletSolanaSignMessage for Keypair {
 	type Output = (Signature, Vec<u8>, Option<String>);
 

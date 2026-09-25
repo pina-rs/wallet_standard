@@ -60,6 +60,7 @@ impl StandardConnectFeature {
 }
 
 #[async_trait(?Send)]
+
 impl WalletStandardConnect for BrowserWallet {
 	/// Connect the account and automatically update the attached account.
 	async fn connect(&mut self) -> WalletResult<Vec<Self::Account>> {

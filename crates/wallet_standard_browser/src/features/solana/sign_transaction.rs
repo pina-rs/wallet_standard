@@ -151,6 +151,7 @@ impl SolanaSignTransactionFeature {
 }
 
 #[async_trait(?Send)]
+
 impl WalletSolanaSignTransaction for BrowserWallet {
 	type Output = BrowserSolanaSignTransactionOutput;
 

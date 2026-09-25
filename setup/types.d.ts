@@ -8,10 +8,12 @@ declare module "eslint-plugin-unicorn" {
 	const module: {
 		configs: typeof configs;
 	};
+
 	export default module;
 }
 
 declare module "eslint-plugin-file-progress" {
 	const module: any;
+
 	export default module;
 }
