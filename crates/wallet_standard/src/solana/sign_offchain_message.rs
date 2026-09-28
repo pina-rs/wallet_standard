@@ -129,3 +129,54 @@ pub trait WalletSolanaSignOffchainMessage {
 		props: Vec<SolanaSignOffchainMessageProps>,
 	) -> WalletResult<Vec<Self::Output>>;
 }
+
+#[cfg(all(test, feature = "solana"))]
+mod tests {
+	use super::SolanaOffchainMessageVersion;
+	use super::SolanaSignOffchainMessageProps;
+
+	#[test]
+	fn message_version_serializes_as_the_spec_number() {
+		let encoded =
+			bincode::serialize(&SolanaOffchainMessageVersion::V1).expect("version serializes");
+		assert_eq!(
+			encoded,
+			vec![1u8],
+			"SRFC-3 discriminates on a numeric version"
+		);
+		let decoded: SolanaOffchainMessageVersion =
+			bincode::deserialize(&encoded).expect("version round-trips");
+		assert_eq!(decoded, SolanaOffchainMessageVersion::V1);
+	}
+
+	#[test]
+	fn unknown_message_versions_are_rejected() {
+		let error = bincode::deserialize::<SolanaOffchainMessageVersion>(&[2u8])
+			.expect_err("version 2 is not defined by the specification");
+		assert!(
+			error
+				.to_string()
+				.contains("unknown offchain message version"),
+			"error names the offending version: {error}"
+		);
+	}
+
+	#[test]
+	fn props_serialization_includes_the_version_discriminator() {
+		let props = SolanaSignOffchainMessageProps::builder()
+			.message_version(SolanaOffchainMessageVersion::V1)
+			.message("hello offchain")
+			.required_signers(vec![vec![0u8; 32]])
+			.build();
+
+		let encoded = bincode::serialize(&props).expect("props serialize");
+		let decoded: SolanaSignOffchainMessageProps =
+			bincode::deserialize(&encoded).expect("props round-trip");
+		assert_eq!(decoded, props);
+		assert_eq!(
+			encoded.first(),
+			Some(&1u8),
+			"the wire starts with the version"
+		);
+	}
+}
