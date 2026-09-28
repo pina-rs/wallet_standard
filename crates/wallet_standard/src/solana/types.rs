@@ -10,6 +10,11 @@ use crate::WalletSolanaSignMessage;
 use crate::WalletSolanaSignTransaction;
 use crate::WalletStandard;
 
+/// Bridges the standard's raw account bytes into a Solana [`Pubkey`].
+///
+/// Wallet accounts expose their public key as untyped bytes; signing and
+/// address display need a real `Pubkey`, and this trait supplies the
+/// fallible conversion in one place.
 pub trait WalletSolanaPubkey {
 	/// In order to prevent clashes with the built in
 	/// [`solana_signer::Signer`] this is named differently.
@@ -40,6 +45,10 @@ where
 	}
 }
 
+/// Marker for wallets that support the Solana feature set as a whole.
+///
+/// Apps can require this single bound to claim connect, sign, and send
+/// capabilities together instead of naming each feature trait.
 pub trait WalletSolana:
 	WalletSolanaSignMessage
 	+ WalletSolanaSignTransaction

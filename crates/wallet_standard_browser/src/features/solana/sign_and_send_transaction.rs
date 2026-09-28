@@ -24,16 +24,23 @@ use crate::impl_feature_from_js;
 #[wasm_bindgen]
 extern "C" {
 	#[derive(Clone, Debug)]
+	/// The JavaScript `{ signature }` output of a
+	/// `solana:signAndSendTransaction` call; the signature is the only
+	/// thing an app receives when the wallet owns broadcasting.
 	pub type BrowserSolanaSignAndSendTransactionOutput;
 	/// Transaction signature, as raw bytes.
 	#[wasm_bindgen(method, getter, js_name = signature)]
 	pub fn _signature(this: &BrowserSolanaSignAndSendTransactionOutput) -> Vec<u8>;
 	#[derive(Clone, Debug)]
+	/// The JavaScript `solana:signAndSendTransaction` feature object of a
+	/// registered wallet.
 	pub type SolanaSignAndSendTransactionFeature;
 	/// Version of the feature API.
 	#[wasm_bindgen(method, getter)]
 	pub fn version(this: &SolanaSignAndSendTransactionFeature) -> String;
 	#[wasm_bindgen(method, getter, js_name = supportedTransactionVersions)]
+	/// Raw `supportedTransactionVersions` property read, the JS side of
+	/// [`SolanaSignAndSendTransactionFeature::supported_transaction_versions`].
 	pub fn supported_transaction_versions_getter(
 		this: &SolanaSignAndSendTransactionFeature,
 	) -> Array;
@@ -44,6 +51,8 @@ extern "C" {
 	///
 	/// @return Outputs of signing and sending transactions.
 	#[allow(unused_qualifications)]
+	/// The wallet-side JS `signAndSendTransaction` method, called with one
+	/// input object per transaction.
 	#[wasm_bindgen(method, catch, variadic, js_name = signAndSendTransaction)]
 	pub async fn _sign_and_send_transaction(
 		this: &SolanaSignAndSendTransactionFeature,
@@ -65,6 +74,9 @@ impl SolanaSignatureOutput for BrowserSolanaSignAndSendTransactionOutput {
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
+/// The wire-format input for `solana:signAndSendTransaction`: a flat
+/// `{ account, transaction, chain, options }` object whose transaction is
+/// raw wire bytes, exactly as the JavaScript feature receives it.
 pub struct SolanaSignAndSendTransactionInput {
 	/// Account to use.
 	#[serde(with = "serde_wasm_bindgen::preserve")]
@@ -82,6 +94,15 @@ pub struct SolanaSignAndSendTransactionInput {
 }
 
 impl SolanaSignAndSendTransactionFeature {
+	/// The transaction versions this wallet will sign and send.
+	///
+	/// Checked before any call so unsupported versions fail before the
+	/// user sees a prompt.
+	///
+	/// # Errors
+	///
+	/// Returns [`WalletError::Serde`] for a version value this crate does
+	/// not understand.
 	pub fn supported_transaction_versions(&self) -> WalletResult<Vec<TransactionVersion>> {
 		let array = self.supported_transaction_versions_getter();
 
@@ -94,6 +115,12 @@ impl SolanaSignAndSendTransactionFeature {
 			.collect::<WalletResult<Vec<_>>>()
 	}
 
+	/// Sign and send one transaction; the wallet broadcasts it itself.
+	///
+	/// # Errors
+	///
+	/// Fails with [`WalletError::UnsupportedTransactionVersion`] when the
+	/// wallet does not sign this transaction's version.
 	pub async fn sign_and_send_transaction(
 		&self,
 		account: BrowserWalletAccountInfo,
@@ -116,6 +143,13 @@ impl SolanaSignAndSendTransactionFeature {
 			.ok_or(WalletError::WalletSignTransaction)
 	}
 
+	/// Sign and send a batch in one wallet round trip.
+	///
+	/// # Errors
+	///
+	/// Fails with [`WalletError::InvalidArguments`] for an empty batch
+	/// and [`WalletError::UnsupportedTransactionVersion`] when one of the
+	/// transactions uses a version the wallet will not sign.
 	pub async fn sign_and_send_transactions(
 		&self,
 		inputs: Vec<SolanaSignAndSendTransactionInput>,

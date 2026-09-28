@@ -24,6 +24,8 @@ use crate::impl_feature_from_js;
 #[wasm_bindgen]
 extern "C" {
 	#[derive(Clone, Debug)]
+	/// The JavaScript `{ signedTransaction }` output of a
+	/// `solana:signTransaction` call.
 	pub type BrowserSolanaSignTransactionOutput;
 	/// Signed, serialized transaction, as raw bytes.
 	/// Returning a transaction rather than signatures allows multisig wallets,
@@ -32,10 +34,14 @@ extern "C" {
 	#[wasm_bindgen(method, getter, js_name = signedTransaction)]
 	pub fn _signed_transaction(this: &BrowserSolanaSignTransactionOutput) -> Vec<u8>;
 	#[derive(Clone, Debug)]
+	/// The JavaScript `solana:signTransaction` feature object of a
+	/// registered wallet.
 	pub type SolanaSignTransactionFeature;
 	/// Version of the feature API.
 	#[wasm_bindgen(method, getter)]
 	pub fn version(this: &SolanaSignTransactionFeature) -> String;
+	/// Raw `supportedTransactionVersions` property read, the JS side of
+	/// [`SolanaSignTransactionFeature::supported_transaction_versions`].
 	#[wasm_bindgen(method, getter, js_name = supportedTransactionVersions)]
 	pub fn _supported_transaction_versions(this: &SolanaSignTransactionFeature) -> Array;
 	/// Sign transactions using the account's secret key.
@@ -44,6 +50,8 @@ extern "C" {
 	///
 	/// @return Outputs of signing transactions.
 	#[allow(unused_qualifications)]
+	/// The wallet-side JS `signTransaction` method, called with one input
+	/// object per transaction.
 	#[wasm_bindgen(method, catch, variadic, js_name = signTransaction)]
 	pub async fn _sign_transaction(
 		this: &SolanaSignTransactionFeature,
@@ -73,6 +81,16 @@ impl SolanaSignTransactionOutput for BrowserSolanaSignTransactionOutput {
 }
 
 impl SolanaSignTransactionFeature {
+	/// The transaction versions this wallet will sign.
+	///
+	/// Checked before any signing call so the app can fail fast instead
+	/// of handing the wallet a transaction it must refuse after showing
+	/// the user a prompt.
+	///
+	/// # Errors
+	///
+	/// Returns [`WalletError::Serde`] when the wallet advertises a version
+	/// value this crate does not understand.
 	pub fn supported_transaction_versions(&self) -> WalletResult<Vec<TransactionVersion>> {
 		let array = self._supported_transaction_versions();
 
@@ -90,6 +108,12 @@ impl_feature_from_js!(SolanaSignTransactionFeature, SOLANA_SIGN_TRANSACTION);
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
+/// The wire-format input for `solana:signTransaction`: a flat
+/// `{ account, transaction, chain, options }` object whose transaction is
+/// raw wire bytes, exactly as the JavaScript feature receives it.
+///
+/// Kept flat on purpose: `serde(flatten)` produces an empty object under
+/// `serde-wasm-bindgen`, which once silenced every signing call.
 pub struct SolanaSignTransactionInput {
 	/// Account to use.
 	#[serde(with = "serde_wasm_bindgen::preserve")]
@@ -107,6 +131,12 @@ pub struct SolanaSignTransactionInput {
 }
 
 impl SolanaSignTransactionFeature {
+	/// Sign one transaction with the given account.
+	///
+	/// # Errors
+	///
+	/// Fails with [`WalletError::UnsupportedTransactionVersion`] when the
+	/// wallet does not sign this transaction's version.
 	pub async fn sign_transaction(
 		&self,
 		account: BrowserWalletAccountInfo,
@@ -119,6 +149,12 @@ impl SolanaSignTransactionFeature {
 			.ok_or(WalletError::WalletSignTransaction)
 	}
 
+	/// Sign a batch in one wallet round trip, so the user approves a
+	/// single prompt for all transactions.
+	///
+	/// # Errors
+	///
+	/// Fails with [`WalletError::InvalidArguments`] for an empty batch.
 	pub async fn sign_transactions(
 		&self,
 		inputs: Vec<(BrowserWalletAccountInfo, SolanaSignTransactionProps)>,
