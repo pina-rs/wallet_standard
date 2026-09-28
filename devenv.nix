@@ -334,8 +334,19 @@ in
         lint:clippy
         lint:monochange
         lint:format
+        lint:docs
       '';
       description = "Run all checks.";
+    };
+    "lint:docs" = {
+      exec = ''
+        set -e
+        # devenv shells do not inherit /usr/local/bin, where CI installs the
+        # pinned mdt release; local shells already provide it via the profile.
+        export PATH="$PATH:/usr/local/bin"
+        mdt check
+      '';
+      description = "Check that single-sourced documentation is in sync.";
     };
     "lint:format" = {
       exec = ''

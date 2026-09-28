@@ -1,29 +1,22 @@
-# Getting Started
+# Documentation providers
 
-## Installing
+Content here is the single source of truth. Consumers in the readmes, the
+mdBook pages, and rustdoc comments reference these blocks with consumer
+tags named after the provider; `mdt update` syncs them and `mdt check`
+fails CI when a copy drifts.
 
-Add the crates to your `Cargo.toml`:
+<!-- {@install_deps} -->
 
-<!-- {=install_deps|trim|codeBlock:"toml"} -->
-
-```toml
 [dependencies]
 # Core protocol traits (required)
-wallet_standard = "0.7.0"
+wallet_standard = "{{ cargo.workspace.package.version }}"
 
 # Browser/WASM integration (only for wasm32 targets)
-wallet_standard_browser = "0.7.0"
-```
+wallet_standard_browser = "{{ cargo.workspace.package.version }}"
 
 <!-- {/install_deps} -->
 
-The core crate is runtime agnostic and compiles everywhere. The `wallet_standard_browser` crate only makes sense inside a WASM module running in a browser.
-
-## Feature flags
-
-### `wallet_standard`
-
-<!-- {=feature_table_core|trim} -->
+<!-- {@feature_table_core} -->
 
 | Feature                | Description                                                                                                                                                                            |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -32,9 +25,7 @@ The core crate is runtime agnostic and compiles everywhere. The `wallet_standard
 
 <!-- {/feature_table_core} -->
 
-### `wallet_standard_browser`
-
-<!-- {=feature_table_browser|trim} -->
+<!-- {@feature_table_browser} -->
 
 | Feature               | Description                                                                     |
 | --------------------- | ------------------------------------------------------------------------------- |
@@ -42,50 +33,27 @@ The core crate is runtime agnostic and compiles everywhere. The `wallet_standard
 
 <!-- {/feature_table_browser} -->
 
-## Quick start: an app talking to injected wallets
+<!-- {@trait_mapping_table} -->
 
-Inside a WASM application:
+| Wallet Standard concept              | Rust trait                           |
+| ------------------------------------ | ------------------------------------ |
+| `Wallet` object metadata             | `WalletInfo`                         |
+| `WalletAccount` object               | `WalletAccountInfo`                  |
+| `Wallet` + current account           | `Wallet`                             |
+| `standard:connect`                   | `WalletStandardConnect`              |
+| `standard:disconnect`                | `WalletStandardDisconnect`           |
+| `standard:events` (connected wallet) | `ConnectedWalletStandardEvents`      |
+| `solana:signMessage`                 | `WalletSolanaSignMessage`            |
+| `solana:signTransaction`             | `WalletSolanaSignTransaction`        |
+| `solana:signAndSendTransaction`      | `WalletSolanaSignAndSendTransaction` |
+| `solana:signIn`                      | `WalletSolanaSignIn`                 |
+| `experimental:encrypt`               | `WalletExperimentalEncrypt`          |
+| `experimental:decrypt`               | `WalletExperimentalDecrypt`          |
 
-<!-- {=example_detect_connect|trim|codeBlock:"rust,ignore"} -->
+<!-- {/trait_mapping_table} -->
 
-```rust,ignore
-use wallet_standard_browser::prelude::*;
-use wasm_bindgen_futures::spawn_local;
+<!-- {@example_implement_wallet} -->
 
-fn detect_and_connect() {
-	spawn_local(async {
-		let wallets = get_wallets();
-
-		// Find a wallet by name and connect to it.
-		if let Some(info) = wallets
-			.get()
-			.iter()
-			.find(|wallet| wallet.name() == "Phantom")
-		{
-			let mut wallet = BrowserWallet::from(info.clone());
-			let accounts = wallet.connect().await?;
-
-			let account = accounts
-				.first()
-				.cloned()
-				.ok_or(WalletError::WalletConnection)?;
-			web_sys::console::log_1(&format!("Connected to {}", account.address()).into());
-		}
-
-		Ok::<(), WalletError>(())
-	});
-}
-```
-
-<!-- {/example_detect_connect} -->
-
-## Quick start: implementing a wallet
-
-Implement the traits from `wallet_standard` and hand your wallet to the host environment (in the browser via `wallet_standard_browser`, see [Registering a Wallet](./wallets/register.md)):
-
-<!-- {=example_implement_wallet|trim|codeBlock:"rust,ignore"} -->
-
-```rust,ignore
 use async_trait::async_trait;
 use wallet_standard::prelude::*;
 
@@ -212,29 +180,57 @@ impl WalletStandardDisconnect for MyWallet {
 		Ok(())
 	}
 }
-```
 
 <!-- {/example_implement_wallet} -->
 
-## WASM toolchain
+<!-- {@example_detect_connect} -->
 
-When targeting `wasm32-unknown-unknown`, the `getrandom` backend must be configured. This repository ships the required wiring in `.cargo/config.toml`:
+use wallet_standard_browser::prelude::*;
+use wasm_bindgen_futures::spawn_local;
 
-```toml
-[target.wasm32-unknown-unknown]
-rustflags = ["--cfg", "getrandom_backend=\"wasm_js\""]
-```
+fn detect_and_connect() {
+	spawn_local(async {
+		let wallets = get_wallets();
 
-and matching target-specific `getrandom` dependencies with the `wasm_js` feature in the crate manifests. Copy both into your project if your app generates keys or randomness on the wasm side.
+		// Find a wallet by name and connect to it.
+		if let Some(info) = wallets.get().iter().find(|wallet| wallet.name() == "Phantom") {
+			let mut wallet = BrowserWallet::from(info.clone());
+			let accounts = wallet.connect().await?;
 
-## Running the tests in this repository
+			let account = accounts
+				.first()
+				.cloned()
+				.ok_or(WalletError::WalletConnection)?;
+			web_sys::console::log_1(&format!("Connected to {}", account.address()).into());
+		}
 
-```bash
-# native tests for the core crate
-devenv shell -c "cargo test_wallet_standard"
+		Ok::<(), WalletError>(())
+	});
+}
 
-# browser tests against a local validator (chrome)
-devenv shell -c "test:validator"
-```
+<!-- {/example_detect_connect} -->
 
-See [Testing](./testing.md) for the full picture.
+<!-- {@example_register_wallet} -->
+
+use wallet_standard_browser::prelude::*;
+
+// Build a JS wallet object whose `features` map holds feature objects with
+// Rust-backed JS callbacks (see the example crate for the full construction).
+let wallet = build_wallet_object(/* … */);
+
+// Every @wallet-standard/app consumer on the page — React apps, other
+// extensions — now sees the wallet.
+register_wallet(&wallet)?;
+
+<!-- {/example_register_wallet} -->
+
+<!-- {@sign_and_send_rationale} -->
+
+`solana:signAndSendTransaction` is the safer counterpart to
+`solana:signTransaction`: the wallet signs **and broadcasts**, so a
+malicious app never holds a signed transaction it could replay or
+redirect. Apps that need to aggregate signatures, batch, or relay
+transactions themselves use `solana:signTransaction` instead — wallets
+that refuse to hand back signed payloads simply do not implement it.
+
+<!-- {/sign_and_send_rationale} -->

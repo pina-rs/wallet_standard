@@ -22,20 +22,30 @@ cargo add wallet_standard_browser --features solana
 
 Or directly add the following to your `Cargo.toml`:
 
+<!-- {=install_deps|trim|codeBlock:"toml"} -->
+
 ```toml
 [dependencies]
-wallet_standard_browser = { version = "0.6", features = ["solana"] }
+# Core protocol traits (required)
+wallet_standard = "0.7.0"
+
+# Browser/WASM integration (only for wasm32 targets)
+wallet_standard_browser = "0.7.0"
 ```
+
+<!-- {/install_deps} -->
+
+Enable the Solana feature namespace when you depend on the browser crate:
 
 ### Features
 
-| Feature  | Description                           |
-| -------- | ------------------------------------- |
-| `solana` | Enables Solana-specific functionality |
+<!-- {=feature_table_browser|trim} -->
 
-### Toolchain requirements
+| Feature               | Description                                                                     |
+| --------------------- | ------------------------------------------------------------------------------- |
+| `solana` _(optional)_ | Forwards to `wallet_standard/solana` and adds Solana-specific browser bindings. |
 
-The crate is compiled to `wasm32-unknown-unknown`. Tooling that post-processes the wasm — `wasm-bindgen-cli` for bundlers, or `wasm-bindgen-test-runner` for the browser test suite — must match the resolved `wasm-bindgen` crate version exactly, otherwise the build fails with a version mismatch error. This repository pins the expected version in `[workspace.metadata.bin]` and installs it with the `install:cargo:bin` devenv task.
+<!-- {/feature_table_browser} -->
 
 ## Core Components
 
@@ -51,6 +61,8 @@ This crate provides several key components:
 ### Detecting and Connecting to Wallets
 
 `get_wallets()` is synchronous and returns a snapshot of every wallet registered on the page. Each wallet is wrapped in a `BrowserWallet`, which implements the same traits as the core crate — `WalletStandardConnect`, `WalletStandardDisconnect`, and (with the `solana` feature) the full Solana feature set.
+
+<!-- {=example_detect_connect|trim|codeBlock:"rust,ignore"} -->
 
 ```rust,ignore
 use wallet_standard_browser::prelude::*;
@@ -80,6 +92,8 @@ fn detect_and_connect() {
 	});
 }
 ```
+
+<!-- {/example_detect_connect} -->
 
 ### Listening for Wallet Events
 
@@ -146,6 +160,8 @@ async fn send_transaction(wallet: &mut BrowserWallet) -> WalletResult<()> {
 
 A Wallet Standard wallet implemented in Rust must be exposed to the page as a JavaScript object — including feature objects whose methods are real JS functions backed by Rust closures — and registered with [`register_wallet`](https://docs.rs/wallet-standard-wallet). The example crate [`examples/crates/surfpool-wallet-core`](https://github.com/pina-rs/wallet_standard/tree/main/examples) builds such a wallet end to end (connect, disconnect, events, signing, and sending) and the Leptos and Dioxus examples exercise it against a local [surfpool](https://github.com/solana-foundation/surfpool) node under Playwright.
 
+<!-- {=example_register_wallet|trim|codeBlock:"rust,ignore"} -->
+
 ```rust,ignore
 use wallet_standard_browser::prelude::*;
 
@@ -157,6 +173,8 @@ let wallet = build_wallet_object(/* … */);
 // extensions — now sees the wallet.
 register_wallet(&wallet)?;
 ```
+
+<!-- {/example_register_wallet} -->
 
 ## Examples
 
