@@ -233,8 +233,13 @@ jobs:
             exit 1
           fi
           echo "$profile/bin" >> "$GITHUB_PATH"
-          # `cargo bin --install` places the binaries in `.bin/.shims`.
-          echo "$PWD/.bin/.shims" >> "$GITHUB_PATH"
+          # `cargo bin --install` places each crate under
+          # `.bin/<toolchain>/<crate>/<version>/bin`; the `.shims` directory
+          # only materialises inside a devenv shell, which the runner's node
+          # is not part of.
+          for bin_dir in "$PWD"/.bin/*/*/*/bin; do
+            [[ -d "$bin_dir" ]] && echo "$bin_dir" >> "$GITHUB_PATH"
+          done
 
       - name: install surfpool
         run: |
