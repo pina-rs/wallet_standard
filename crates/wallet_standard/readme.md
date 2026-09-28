@@ -60,20 +60,22 @@ Every Wallet Standard concept maps onto one trait:
 
 <!-- {=trait_mapping_table|trim} -->
 
-| Wallet Standard concept              | Rust trait                           |
-| ------------------------------------ | ------------------------------------ |
-| `Wallet` object metadata             | `WalletInfo`                         |
-| `WalletAccount` object               | `WalletAccountInfo`                  |
-| `Wallet` + current account           | `Wallet`                             |
-| `standard:connect`                   | `WalletStandardConnect`              |
-| `standard:disconnect`                | `WalletStandardDisconnect`           |
-| `standard:events` (connected wallet) | `ConnectedWalletStandardEvents`      |
-| `solana:signMessage`                 | `WalletSolanaSignMessage`            |
-| `solana:signTransaction`             | `WalletSolanaSignTransaction`        |
-| `solana:signAndSendTransaction`      | `WalletSolanaSignAndSendTransaction` |
-| `solana:signIn`                      | `WalletSolanaSignIn`                 |
-| `experimental:encrypt`               | `WalletExperimentalEncrypt`          |
-| `experimental:decrypt`               | `WalletExperimentalDecrypt`          |
+| Wallet Standard concept              | Rust trait                               |
+| ------------------------------------ | ---------------------------------------- |
+| `Wallet` object metadata             | `WalletInfo`                             |
+| `WalletAccount` object               | `WalletAccountInfo`                      |
+| `Wallet` + current account           | `Wallet`                                 |
+| `standard:connect`                   | `WalletStandardConnect`                  |
+| `standard:disconnect`                | `WalletStandardDisconnect`               |
+| `standard:events` (connected wallet) | `ConnectedWalletStandardEvents`          |
+| `solana:signMessage`                 | `WalletSolanaSignMessage`                |
+| `solana:signTransaction`             | `WalletSolanaSignTransaction`            |
+| `solana:signAndSendTransaction`      | `WalletSolanaSignAndSendTransaction`     |
+| `solana:signAndSendAllTransactions`  | `WalletSolanaSignAndSendAllTransactions` |
+| `solana:signIn`                      | `WalletSolanaSignIn`                     |
+| `solana:signOffchainMessage`         | `WalletSolanaSignOffchainMessage`        |
+| `experimental:encrypt`               | `WalletExperimentalEncrypt`              |
+| `experimental:decrypt`               | `WalletExperimentalDecrypt`              |
 
 <!-- {/trait_mapping_table} -->
 

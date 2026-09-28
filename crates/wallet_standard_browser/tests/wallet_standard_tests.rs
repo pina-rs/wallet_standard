@@ -14,9 +14,11 @@ use js_sys::Function;
 use js_sys::Object;
 use js_sys::Reflect;
 use js_sys::Uint8Array;
+use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::Wallet;
 use wallet_standard::WalletAccountInfo;
 use wallet_standard::WalletInfo;
+use wallet_standard::WalletSolanaSignAndSendAllTransactions;
 use wallet_standard::WalletStandardConnect;
 use wallet_standard_browser::BrowserWallet;
 use wallet_standard_browser::BrowserWalletAccountInfo;
@@ -39,11 +41,22 @@ fn set(target: &Object, key: &str, value: impl Into<JsValue>) {
 
 /// A feature object backed by real JavaScript, so feature lookups and method
 /// calls exercise the same bridge a dApp uses against injected wallets.
+/// Entries whose body starts with `return` become functions; anything else
+/// is installed as a literal property (for plain values such as
+/// `supportedTransactionVersions`).
 fn mock_feature(version: &str, methods: &[(&str, &str)]) -> Object {
 	let feature = Object::new();
 	set(&feature, "version", js_str(version));
 	for (name, body) in methods {
-		set(&feature, name, Function::new_no_args(body));
+		if body.starts_with("return ") {
+			set(&feature, name, Function::new_no_args(body));
+		} else {
+			set(
+				&feature,
+				name,
+				js_sys::eval(body).expect("literal property body evaluates"),
+			);
+		}
 	}
 	feature
 }
@@ -370,4 +383,110 @@ pub fn js_rejections_keep_their_error_message() {
 		plain,
 		wallet_standard::WalletError::Js("plain rejection".to_string())
 	);
+}
+
+/// Pins the wire shape of an offchain-message batch: a numeric
+/// `messageVersion`, the preserved account, the message as text, and
+/// `Uint8Array` signer keys.
+#[wasm_bindgen_test]
+pub fn sign_offchain_message_input_serializes_to_the_wire_format() {
+	let input = wallet_standard_browser::SolanaSignOffchainMessageInput::builder()
+		.message_version(wallet_standard::SolanaOffchainMessageVersion::V1)
+		.account(mock_account())
+		.message("hello offchain")
+		.required_signers(vec![serde_bytes::ByteBuf::from(vec![0u8; 32])])
+		.build();
+
+	let value = serde_wasm_bindgen::to_value(&vec![input]).expect("serializes");
+	let array: Array = value.dyn_into().expect("a batch serializes to an array");
+	let element = array.get(0);
+	assert_eq!(
+		shape_of(&element),
+		vec![
+			"messageVersion".to_string(),
+			"account".to_string(),
+			"message".to_string(),
+			"requiredSigners".to_string(),
+		]
+	);
+	// The specification discriminates inputs on a numeric message version.
+	assert_eq!(
+		Reflect::get(&element, &js_str("messageVersion"))
+			.expect("version key exists")
+			.as_f64(),
+		Some(1.0)
+	);
+	let signers = Reflect::get(&element, &js_str("requiredSigners")).expect("signers key exists");
+	let signers: Array = signers.dyn_into().expect("signers serialize as an array");
+	assert!(
+		signers.get(0).is_instance_of::<Uint8Array>(),
+		"signer keys must cross as Uint8Array"
+	);
+}
+
+/// Drives the `solana:signAndSendAllTransactions` bridge end to end
+/// against a mock JS feature: every input settles independently, a
+/// fulfilled element yields the signature output and a rejected element
+/// carries its own error without failing the batch.
+#[wasm_bindgen_test]
+pub async fn sign_and_send_all_settles_each_input_independently() {
+	let feature = mock_feature(
+		"1.0.0",
+		&[
+			("supportedTransactionVersions", r#"["legacy", 0]"#),
+			(
+				"signAndSendAllTransactions",
+				r#"return Promise.resolve([
+					{ status: "fulfilled", value: { signature: new Uint8Array(64).fill(3) } },
+					{ status: "rejected", reason: new Error("second was refused") },
+				]);"#,
+			),
+		],
+	);
+	let info = mock_wallet(
+		"SettleMock",
+		&[
+			("standard:connect", connect_feature()),
+			("solana:signAndSendAllTransactions", feature),
+		],
+	);
+	let mut wallet = BrowserWallet::from(info);
+	WalletStandardConnect::connect(&mut wallet)
+		.await
+		.expect("connect resolves");
+
+	let outputs = wallet
+		.sign_and_send_all_transactions(
+			vec![unsigned_transfer_props()],
+			wallet_standard::SolanaSignAndSendAllTransactionsOptions::default(),
+		)
+		.await
+		.expect("the batch itself succeeds");
+
+	assert_eq!(outputs.len(), 2, "one settled result per input");
+	let wallet_standard::WalletSettled::Fulfilled { value } = &outputs[0] else {
+		panic!("expected a fulfilled first element, got {:?}", outputs[0])
+	};
+	assert_eq!(
+		value.try_signature().expect("valid signature").as_ref(),
+		&[3u8; 64]
+	);
+	let wallet_standard::WalletSettled::Rejected { reason } = &outputs[1] else {
+		panic!("expected a rejected second element, got {:?}", outputs[1])
+	};
+	assert_eq!(
+		reason,
+		&wallet_standard::WalletError::Js("second was refused".to_string())
+	);
+}
+
+/// A minimal unsigned transfer for driving the batch features.
+fn unsigned_transfer_props() -> wallet_standard::SolanaSignAndSendTransactionProps {
+	let message = solana_message::Message::new(&[], None);
+	let transaction = solana_transaction::versioned::VersionedTransaction::from(
+		solana_transaction::Transaction::new_unsigned(message),
+	);
+	wallet_standard::SolanaSignAndSendTransactionProps::builder()
+		.transaction(transaction)
+		.build()
 }
