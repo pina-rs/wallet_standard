@@ -248,6 +248,16 @@ jobs:
           sudo tar -xzf /tmp/surfpool.tar.gz -C /usr/local/bin surfpool
           surfpool --version
 
+      # The e2e suite is the only consumer of trunk, and resolving it through
+      # `cargo bin --install` depends on a flaky GitHub release fetch that can
+      # skip the binary without failing the setup step.
+      - name: install trunk
+        run: |
+          curl -sSfL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz \
+            -o /tmp/trunk.tar.gz
+          sudo tar -xzf /tmp/trunk.tar.gz -C /usr/local/bin trunk
+          trunk --version
+
       - name: cache playwright browsers
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
