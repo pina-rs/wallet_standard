@@ -259,9 +259,22 @@ jobs:
           npm ci
           npx playwright install --with-deps chromium
         working-directory: examples/e2e
+        # The default `bash` resolves to the devenv profile's nix bash, whose
+        # environment makes Playwright's host dependency validation report
+        # every system library as missing; the system bash validates normally.
+        shell: /usr/bin/bash -e {0}
 
       - name: run playwright suite
         run: npx playwright test
         working-directory: examples/e2e
+        shell: /usr/bin/bash -e {0}
         env:
           CI: "true"
+
+      - name: upload playwright report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report
+          path: examples/e2e/playwright-report
+          retention-days: 7
