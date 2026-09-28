@@ -50,6 +50,7 @@ cargo-nextest = { version = "0.9.143" }
 cargo-semver-checks = { version = "0.50.0" }
 dylint-link = { version = "6.0.4", bins = ["dylint-link"] }
 wasm-bindgen-cli = { version = "0.2.128", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
+trunk = { version = "0.21.14" }
 
 [workspace.lints.rust]
 # Group lints

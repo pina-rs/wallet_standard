@@ -32,7 +32,7 @@ extern "C" {
 	#[derive(Clone, Debug)]
 	pub type BrowserExperimentalEncryptOutput;
 	/// `ciphertext` that was encrypted.
-	#[wasm_bindgen(method, getter, js_name = "cipher_text")]
+	#[wasm_bindgen(method, getter, js_name = "ciphertext")]
 	pub fn _cipher_text(this: &BrowserExperimentalEncryptOutput) -> Vec<u8>;
 	/// Nonce that was used for encryption.
 	#[wasm_bindgen(method, getter, js_name = "nonce")]

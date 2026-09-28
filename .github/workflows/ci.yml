@@ -129,3 +129,170 @@ jobs:
       - name: build all features
         run: build:all
         shell: devenv shell -c -- bash -e {0}
+
+  # `build:all` compiles the workspace with `--all-features`, which hides
+  # feature-graph gaps: the `solana` feature of `wallet_standard_browser`
+  # shipped without `dep:solana-transaction` because the all-features build
+  # enabled it implicitly. Every feature combination a downstream user can
+  # name is checked on its own, for both the native and wasm targets.
+  check-features:
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: check every feature combination
+        run: |
+          cargo check --locked -p wallet_standard --no-default-features
+          cargo check --locked -p wallet_standard --no-default-features --features solana
+          cargo check --locked -p wallet_standard --no-default-features --features browser
+          cargo check --locked -p wallet_standard --no-default-features --features browser,solana
+          cargo check --locked -p wallet_standard_browser --no-default-features
+          cargo check --locked -p wallet_standard_browser --features solana
+          cargo check --locked -p wallet_standard_browser --features solana --target wasm32-unknown-unknown
+        shell: devenv shell -c -- bash -e {0}
+
+  # The browser bridge is only observable in a real browser: the wasm tests
+  # cover wallet discovery, the connect flow, and the exact JavaScript shapes
+  # that cross the wasm boundary (a regression there fails here instead of
+  # silently in downstream dApps).
+  test-browser:
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # The runner image ships Google Chrome but not a matching chromedriver;
+      # `wasm-bindgen-test-runner` needs one on PATH.
+      - name: install matching chromedriver
+        run: |
+          chrome_version="$(google-chrome --version | awk '{print $3}')"
+          chrome_major="${chrome_version%%.*}"
+          driver_version="$(
+            curl -sSfL https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone.json \
+              | jq -r --arg major "$chrome_major" '.milestones[$major].version'
+          )"
+          echo "chrome $chrome_version -> chromedriver $driver_version"
+          curl -sSfL "https://storage.googleapis.com/chrome-for-testing-public/${driver_version}/linux64/chromedriver-linux64.zip" \
+            -o /tmp/chromedriver.zip
+          unzip -q /tmp/chromedriver.zip -d /tmp
+          echo "/tmp/chromedriver-linux64" >> "$GITHUB_PATH"
+          /tmp/chromedriver-linux64/chromedriver --version
+
+      - name: test wallet_standard_browser in a browser
+        # `LD_LIBRARY_PATH` from the devenv profile makes the system Chrome
+        # load nix libraries and exit before the session opens; the wasm
+        # build itself is pure Rust and does not need it.
+        run: env -u LD_LIBRARY_PATH cargo test --locked --package wallet_standard_browser --all-features --target wasm32-unknown-unknown
+        shell: devenv shell -c -- bash -e {0}
+
+  # End-to-end: the Leptos and Dioxus examples embed a Rust Wallet Standard
+  # wallet and drive it against a local surfpool node under Playwright. This
+  # is the only layer that exercises the compiled dApp bundles in a real
+  # browser, so it catches glue and bundling defects the wasm tests cannot.
+  e2e:
+    timeout-minutes: 45
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache-version: v2-e2e
+
+      # `devenv shell` does not inherit the runner's node installation, and
+      # the Playwright web servers need cargo, trunk, and wasm-bindgen from
+      # the devenv profile alongside node — so expose the profile binaries on
+      # PATH and run the suite in the default shell.
+      - name: expose the devenv toolchain on PATH
+        run: |
+          profile="$(devenv shell -- bash -c 'printf %s "${DEVENV_PROFILE:-}" >&3' 3>&1 1>/dev/null)"
+          if [[ -z "$profile" || ! -d "$profile/bin" ]]; then
+            echo "devenv profile was not resolved to a bin directory: '$profile'" >&2
+            exit 1
+          fi
+          echo "$profile/bin" >> "$GITHUB_PATH"
+          # `cargo bin --install` places each crate under
+          # `.bin/<toolchain>/<crate>/<version>/bin`; the `.shims` directory
+          # only materialises inside a devenv shell, which the runner's node
+          # is not part of.
+          for bin_dir in "$PWD"/.bin/*/*/*/bin; do
+            [[ -d "$bin_dir" ]] && echo "$bin_dir" >> "$GITHUB_PATH"
+          done
+
+      - name: install surfpool
+        run: |
+          curl -sSfL https://github.com/solana-foundation/surfpool/releases/latest/download/surfpool-linux-x64.tar.gz \
+            -o /tmp/surfpool.tar.gz
+          sudo tar -xzf /tmp/surfpool.tar.gz -C /usr/local/bin surfpool
+          surfpool --version
+
+      # The e2e suite is the only consumer of trunk, and resolving it through
+      # `cargo bin --install` depends on a flaky GitHub release fetch that can
+      # skip the binary without failing the setup step.
+      - name: install trunk
+        run: |
+          curl -sSfL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz \
+            -o /tmp/trunk.tar.gz
+          sudo tar -xzf /tmp/trunk.tar.gz -C /usr/local/bin trunk
+          trunk --version
+
+      - name: cache playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('examples/e2e/package-lock.json') }}
+
+      - name: install e2e dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+        working-directory: examples/e2e
+        # The default `bash` resolves to the devenv profile's nix bash, whose
+        # environment makes Playwright's host dependency validation report
+        # every system library as missing; the system bash validates normally.
+        shell: /usr/bin/bash -e {0}
+
+      - name: run playwright suite
+        run: |
+          # Ground truth for the chromium launch environment; Playwright's
+          # own host validation reports every system library as missing under
+          # the nix-patched PATH, so it is skipped and verified manually.
+          echo "ldd: $(command -v ldd)"
+          ldd --version | head -n 1
+          ldd "$HOME/.cache/ms-playwright"/chromium-*/chrome-linux/chrome | grep -c "not found" || true
+          npx playwright test
+        working-directory: examples/e2e
+        shell: /usr/bin/bash -e {0}
+        env:
+          CI: "true"
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: "1"
+
+      - name: upload playwright report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report
+          path: examples/e2e/playwright-report
+          retention-days: 7

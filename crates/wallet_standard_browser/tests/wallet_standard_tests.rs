@@ -1,216 +1,354 @@
+//! Browser tests for the `wallet_standard_browser` bridge.
+//!
+//! These run under `wasm-bindgen-test` in a real browser:
+//!
+//! ```sh
+//! cargo test --package wallet_standard_browser --all-features \
+//!   --target wasm32-unknown-unknown
+//! ```
+
 #![allow(clippy::unused_async)]
 
 use js_sys::Array;
+use js_sys::Function;
 use js_sys::Object;
 use js_sys::Reflect;
+use js_sys::Uint8Array;
+use wallet_standard::Wallet;
+use wallet_standard::WalletAccountInfo;
+use wallet_standard::WalletInfo;
+use wallet_standard::WalletStandardConnect;
 use wallet_standard_browser::BrowserWallet;
+use wallet_standard_browser::BrowserWalletAccountInfo;
+use wallet_standard_browser::BrowserWalletAccountInfoProps;
 use wallet_standard_browser::BrowserWalletInfo;
-use wallet_standard_browser::prelude::*;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
-use web_sys::CustomEvent;
-use web_sys::CustomEventInit;
-use web_sys::window;
 
-// Configure wasm_bindgen_test to run in a browser environment
 wasm_bindgen_test_configure!(run_in_browser);
 
-// Helper function to create a mock wallet for testing
-pub fn create_mock_wallet() -> JsValue {
-	// Create a mock wallet object
+fn js_str(value: &str) -> JsValue {
+	JsValue::from_str(value)
+}
+
+fn set(target: &Object, key: &str, value: impl Into<JsValue>) {
+	Reflect::set(target.as_ref(), &js_str(key), &value.into())
+		.expect("setting plain properties never fails");
+}
+
+/// A feature object backed by real JavaScript, so feature lookups and method
+/// calls exercise the same bridge a dApp uses against injected wallets.
+fn mock_feature(version: &str, methods: &[(&str, &str)]) -> Object {
+	let feature = Object::new();
+	set(&feature, "version", js_str(version));
+	for (name, body) in methods {
+		set(&feature, name, Function::new_no_args(body));
+	}
+	feature
+}
+
+/// A mock wallet whose `standard:connect` resolves a single account.
+fn mock_wallet(name: &str, features: &[(&str, Object)]) -> BrowserWalletInfo {
 	let wallet = Object::new();
-
-	// Set basic wallet properties
-	Reflect::set(
+	set(&wallet, "version", js_str("1.0.0"));
+	set(&wallet, "name", js_str(name));
+	set(
 		&wallet,
-		&JsValue::from_str("name"),
-		&JsValue::from_str("MockWallet"),
-	)
-	.unwrap();
-	Reflect::set(
-		&wallet,
-		&JsValue::from_str("version"),
-		&JsValue::from_str("1.0.0"),
-	)
-	.unwrap();
-	Reflect::set(&wallet, &JsValue::from_str("icon"), &JsValue::from_str("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIiBmaWxsPSJub25lIj48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSIxNiIgZmlsbD0iIzQxNDE0MSIvPjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTcuNDI0IDEwLjQ2OEwxNi41OTEgMTMuMDA2TDE5LjIxMSAxMy4wMDZMMTcuNDI0IDEwLjQ2OFpNMTMuNTM0IDEwLjQ2OEwxMi43MDEgMTMuMDA2TDE1LjMyMSAxMy4wMDZMMTMuNTM0IDEwLjQ2OFpNMjEuNjY3IDE3LjE1OUgyMy4xNjdWMTUuNjU5SDIxLjY2N1YxNy4xNTlaTTIxLjY2NyAyMC4xNTlIMjMuMTY3VjE4LjY1OUgyMS42NjdWMjAuMTU5Wk04LjgzNCAxNy4xNTlIMTAuMzM0VjE1LjY1OUg4LjgzNFYxNy4xNTlaTTguODM0IDIwLjE1OUgxMC4zMzRWMTguNjU5SDguODM0VjIwLjE1OVoiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTIzLjE2NyAyMS42NTlIMjEuNjY3VjIzLjE1OUgyMy4xNjdWMjEuNjU5WiIgZmlsbD0id2hpdGUiLz48cGF0aCBkPSJNMTAuMzM0IDIxLjY1OUg4LjgzNFYyMy4xNTlIMTAuMzM0VjIxLjY1OVoiIGZpbGw9IndoaXRlIi8+PC9zdmc+")).unwrap();
-
-	// Set chains
-	let chains = Array::new();
-	chains.push(&JsValue::from_str("solana:mainnet"));
-	chains.push(&JsValue::from_str("solana:devnet"));
-	Reflect::set(&wallet, &JsValue::from_str("chains"), &chains).unwrap();
-
-	// Set features
-	let features = Object::new();
-
-	// Add standard:connect feature
-	let connect_feature = Object::new();
-	Reflect::set(
-		&connect_feature,
-		&JsValue::from_str("version"),
-		&JsValue::from_str("1.0.0"),
-	)
-	.unwrap();
-	Reflect::set(
-		&features,
-		&JsValue::from_str("standard:connect"),
-		&connect_feature,
-	)
-	.unwrap();
-
-	// Add standard:disconnect feature
-	let disconnect_feature = Object::new();
-	Reflect::set(
-		&disconnect_feature,
-		&JsValue::from_str("version"),
-		&JsValue::from_str("1.0.0"),
-	)
-	.unwrap();
-	Reflect::set(
-		&features,
-		&JsValue::from_str("standard:disconnect"),
-		&disconnect_feature,
-	)
-	.unwrap();
-
-	// Add solana:signMessage feature
-	let sign_message_feature = Object::new();
-	Reflect::set(
-		&sign_message_feature,
-		&JsValue::from_str("version"),
-		&JsValue::from_str("1.0.0"),
-	)
-	.unwrap();
-	Reflect::set(
-		&features,
-		&JsValue::from_str("solana:signMessage"),
-		&sign_message_feature,
-	)
-	.unwrap();
-
-	Reflect::set(&wallet, &JsValue::from_str("features"), &features).unwrap();
-
-	// Set accounts
-	let accounts = Array::new();
-	Reflect::set(&wallet, &JsValue::from_str("accounts"), &accounts).unwrap();
-
-	wallet.into()
-}
-
-// Helper function to register a mock wallet
-pub fn register_mock_wallet() -> Result<(), JsValue> {
-	let window = window().expect("no global window exists");
-	let wallet = create_mock_wallet();
-
-	// Create a custom event to register the wallet
-	let event_init = CustomEventInit::new();
-	event_init.set_detail(&wallet);
-
-	let event =
-		CustomEvent::new_with_event_init_dict("wallet-standard:register-wallet", &event_init)?;
-
-	window.dispatch_event(&event)?;
-
-	Ok(())
-}
-
-#[wasm_bindgen_test]
-pub async fn test_wallet_creation() {
-	// Create a mock wallet
-	let wallet_js = create_mock_wallet();
-
-	// Convert to BrowserWalletInfo
-	let wallet_info: BrowserWalletInfo = wallet_js.unchecked_into();
-
-	// Verify wallet properties
-	assert_eq!(wallet_info.name(), "MockWallet");
-	assert_eq!(wallet_info.version(), "1.0.0");
-	assert!(wallet_info.icon().starts_with("data:image/svg+xml;base64,"));
-
-	// Verify chains
-	let chains = wallet_info.chains();
-	assert_eq!(chains.len(), 2);
-	assert_eq!(chains[0], "solana:mainnet");
-	assert_eq!(chains[1], "solana:devnet");
-
-	// Verify features
-	let features = wallet_info.features();
-	assert_eq!(features.len(), 3);
-	assert!(features.contains(&"standard:connect".to_string()));
-	assert!(features.contains(&"standard:disconnect".to_string()));
-	assert!(features.contains(&"solana:signMessage".to_string()));
-
-	// Create a BrowserWallet from the wallet info
-	let wallet = BrowserWallet::from(wallet_info);
-
-	// Verify wallet properties
-	assert_eq!(wallet.name(), "MockWallet");
-	assert_eq!(wallet.wallet().version(), "1.0.0");
-	assert!(!wallet.connected());
-}
-
-#[wasm_bindgen_test]
-pub async fn test_get_wallets() {
-	// Register a mock wallet
-	register_mock_wallet().expect("Failed to register mock wallet");
-
-	// Get all wallets
-	let wallets = wallet_standard_browser::get_wallets();
-
-	// Verify that we can get the wallets
-	let wallet_list = wallets.get();
-
-	// There should be at least one wallet (our mock wallet)
-	assert!(!wallet_list.is_empty());
-
-	// Find our mock wallet
-	let mock_wallet = wallet_list
-		.iter()
-		.find(|w| w.name() == "MockWallet")
-		.expect("Mock wallet not found");
-
-	// Verify wallet properties
-	assert_eq!(mock_wallet.name(), "MockWallet");
-	assert_eq!(mock_wallet.version(), "1.0.0");
-
-	// Create a BrowserWallet from the wallet info
-	let wallet = BrowserWallet::from(mock_wallet.clone());
-
-	// Verify wallet properties
-	assert_eq!(wallet.name(), "MockWallet");
-	assert!(!wallet.connected());
-}
-
-#[wasm_bindgen_test]
-pub async fn test_wallet_features() {
-	// Register a mock wallet
-	register_mock_wallet().expect("Failed to register mock wallet");
-
-	// Get all wallets and store in a variable to extend its lifetime
-	let wallets = wallet_standard_browser::get_wallets();
-	let wallet_list = wallets.get();
-
-	// Find our mock wallet
-	let mock_wallet = wallet_list
-		.iter()
-		.find(|w| w.name() == "MockWallet")
-		.expect("Mock wallet not found");
-
-	// Check if the wallet supports standard features
-	assert!(mock_wallet.is_standard_compatible());
-
-	// Check specific features
-	assert!(mock_wallet.is_feature_supported::<wallet_standard_browser::StandardConnectFeature>());
-	assert!(
-		mock_wallet.is_feature_supported::<wallet_standard_browser::StandardDisconnectFeature>()
+		"icon",
+		js_str("data:image/svg+xml;base64,PHN2Zy8+"),
 	);
 
-	// If solana feature is enabled, check Solana-specific features
-	#[cfg(feature = "solana")]
-	{
-		assert!(
-			mock_wallet.is_feature_supported::<wallet_standard_browser::SolanaSignMessageFeature>()
-		);
+	let chains = Array::new();
+	chains.push(&js_str("solana:mainnet"));
+	chains.push(&js_str("solana:devnet"));
+	set(&wallet, "chains", chains);
+
+	let features_object = Object::new();
+	for (feature_name, feature) in features {
+		set(&features_object, feature_name, feature.clone());
 	}
+	set(&wallet, "features", features_object);
+	set(&wallet, "accounts", Array::new());
+
+	wallet.unchecked_into()
+}
+
+fn connect_feature() -> Object {
+	mock_feature(
+		"1.0.0",
+		&[(
+			"connect",
+			r#"return Promise.resolve({
+				accounts: [{
+					address: "4acVT7jfykgHZNunZYEwg1NNCUnvuXwFH292ebEGnN4g",
+					publicKey: new Uint8Array(32).fill(7),
+					chains: ["solana:mainnet"],
+					features: ["solana:signMessage"],
+					label: "Mock",
+					icon: "data:image/svg+xml;base64,PHN2Zy8+",
+				}],
+			});"#,
+		)],
+	)
+}
+
+#[wasm_bindgen_test]
+pub fn wallet_info_reads_injected_wallet() {
+	let info = mock_wallet(
+		"InfoMock",
+		&[
+			("standard:connect", connect_feature()),
+			(
+				"standard:disconnect",
+				mock_feature("1.0.0", &[("disconnect", "return Promise.resolve();")]),
+			),
+			(
+				"standard:events",
+				mock_feature("1.0.0", &[("on", "return function () {};")]),
+			),
+			(
+				"solana:signMessage",
+				mock_feature(
+					"1.0.0",
+					&[(
+						"signMessage",
+						"return Promise.resolve([{
+							signedMessage: new Uint8Array([1, 2, 3]),
+							signature: new Uint8Array(64).fill(9),
+						}]);",
+					)],
+				),
+			),
+		],
+	);
+
+	assert_eq!(info.name(), "InfoMock");
+	assert_eq!(info.version(), "1.0.0");
+	assert_eq!(info.chains(), vec!["solana:mainnet", "solana:devnet"]);
+	assert!(info.features().contains(&"standard:connect".to_string()));
+	assert!(info.features().contains(&"solana:signMessage".to_string()));
+	assert!(info.is_standard_compatible());
+
+	let wallet = BrowserWallet::from(info);
+	assert_eq!(wallet.name(), "InfoMock");
+	assert!(!wallet.connected());
+}
+
+#[wasm_bindgen_test]
+pub fn try_register_and_discover_wallet() {
+	let info = mock_wallet("RegistryMock", &[("standard:connect", connect_feature())]);
+
+	let dispose = wallet_standard_browser::get_wallets()
+		.try_register(&[info])
+		.expect("registering a well-formed wallet succeeds");
+	assert!(
+		wallet_standard_browser::get_wallets()
+			.get()
+			.iter()
+			.any(|wallet| wallet.name() == "RegistryMock")
+	);
+	dispose();
+}
+
+#[wasm_bindgen_test]
+pub async fn connect_updates_the_attached_account() {
+	let info = mock_wallet("ConnectMock", &[("standard:connect", connect_feature())]);
+	let mut wallet = BrowserWallet::from(info);
+
+	let accounts = wallet
+		.connect_with_options(wallet_standard::StandardConnectInput::default())
+		.await
+		.expect("connect resolves");
+	assert_eq!(accounts.len(), 1);
+	assert_eq!(
+		accounts[0].address(),
+		"4acVT7jfykgHZNunZYEwg1NNCUnvuXwFH292ebEGnN4g"
+	);
+
+	// The connect trait implementation must attach the account and remember
+	// it, not recurse into itself.
+	assert_eq!(
+		wallet
+			.wallet_account
+			.as_ref()
+			.expect("connect attaches the account")
+			.address(),
+		"4acVT7jfykgHZNunZYEwg1NNCUnvuXwFH292ebEGnN4g"
+	);
+	assert!(wallet.connected());
+}
+
+// --- Boundary-shape regression tests ---------------------------------------
+//
+// These pin the exact JavaScript shape that crosses the wasm boundary. The
+// signing features silently produced `{}` (and before that `{"Ok":[{}]}`)
+// because `#[serde(flatten)]` is not supported by `serde-wasm-bindgen`; every
+// input struct gets a shape test so a regression fails loudly here instead of
+// silently in dApps.
+
+fn mock_account() -> BrowserWalletAccountInfo {
+	BrowserWalletAccountInfo::try_new(
+		&BrowserWalletAccountInfoProps::builder()
+			.address("4acVT7jfykgHZNunZYEwg1NNCUnvuXwFH292ebEGnN4g")
+			.public_key(vec![0u8; 32])
+			.build(),
+	)
+	.expect("mock account props are valid")
+}
+
+fn shape_of(value: &JsValue) -> Vec<String> {
+	Object::keys(
+		value
+			.dyn_ref::<Object>()
+			.expect("shape targets are objects"),
+	)
+	.iter()
+	.filter_map(|key| key.as_string())
+	.collect()
+}
+
+#[cfg(feature = "solana")]
+#[wasm_bindgen_test]
+pub fn sign_message_input_serializes_to_the_wire_format() {
+	let input = wallet_standard_browser::SolanaSignMessageInput::builder()
+		.account(mock_account())
+		.message(vec![1, 2, 3])
+		.build();
+
+	let value = serde_wasm_bindgen::to_value(&vec![input]).expect("serializes");
+	let array: Array = value.dyn_into().expect("a batch serializes to an array");
+	assert_eq!(array.length(), 1);
+
+	let element = array.get(0);
+	assert_eq!(
+		shape_of(&element),
+		vec!["account".to_string(), "message".to_string()]
+	);
+	assert!(
+		Reflect::get(&element, &js_str("message"))
+			.expect("message key exists")
+			.is_instance_of::<Uint8Array>(),
+		"message bytes must cross as a Uint8Array, not a JSON array"
+	);
+}
+
+#[cfg(feature = "solana")]
+#[wasm_bindgen_test]
+pub fn sign_transaction_input_serializes_to_the_wire_format() {
+	let message = solana_message::Message::new(&[], None);
+	let transaction = solana_transaction::versioned::VersionedTransaction::from(
+		solana_transaction::Transaction::new_unsigned(message),
+	);
+
+	let input = wallet_standard_browser::SolanaSignTransactionInput::builder()
+		.account(mock_account())
+		.transaction(bincode::serialize(&transaction).expect("wire bytes"))
+		.chain(Some("solana:devnet".to_string()))
+		.build();
+
+	let value = serde_wasm_bindgen::to_value(&vec![input]).expect("serializes");
+	let array: Array = value.dyn_into().expect("a batch serializes to an array");
+	assert_eq!(array.length(), 1);
+
+	let element = array.get(0);
+	assert_eq!(
+		shape_of(&element),
+		vec![
+			"account".to_string(),
+			"transaction".to_string(),
+			"chain".to_string(),
+			"options".to_string(),
+		]
+	);
+	assert!(
+		Reflect::get(&element, &js_str("transaction"))
+			.expect("transaction key exists")
+			.is_instance_of::<Uint8Array>(),
+		"transaction bytes must cross as a Uint8Array"
+	);
+}
+
+#[cfg(feature = "solana")]
+#[wasm_bindgen_test]
+pub fn sign_and_send_input_serializes_to_the_wire_format() {
+	let message = solana_message::Message::new(&[], None);
+	let transaction = solana_transaction::versioned::VersionedTransaction::from(
+		solana_transaction::Transaction::new_unsigned(message),
+	);
+
+	let input = wallet_standard_browser::SolanaSignAndSendTransactionInput::builder()
+		.account(mock_account())
+		.transaction(bincode::serialize(&transaction).expect("wire bytes"))
+		.build();
+
+	let value = serde_wasm_bindgen::to_value(&vec![input]).expect("serializes");
+	let array: Array = value.dyn_into().expect("a batch serializes to an array");
+	assert_eq!(array.length(), 1);
+
+	let element = array.get(0);
+	assert_eq!(
+		shape_of(&element),
+		vec![
+			"account".to_string(),
+			"transaction".to_string(),
+			"chain".to_string(),
+			"options".to_string(),
+		]
+	);
+	assert!(
+		Reflect::get(&element, &js_str("transaction"))
+			.expect("transaction key exists")
+			.is_instance_of::<Uint8Array>()
+	);
+}
+
+#[wasm_bindgen_test]
+pub fn decrypt_props_serialize_ciphertext_as_one_word() {
+	let props = wallet_standard::ExperimentalDecryptProps::builder()
+		.cipher("x25519-xsalsa20-poly1305")
+		.public_key(vec![0u8; 32])
+		.cipher_text(vec![7u8; 24])
+		.nonce(vec![1u8; 24])
+		.build();
+
+	let value = serde_wasm_bindgen::to_value(&props).expect("serializes");
+	assert!(
+		Reflect::get(&value, &js_str("ciphertext")).is_ok(),
+		"the wallet-standard experimental spec spells the field `ciphertext`"
+	);
+	let camel_case = Reflect::get(&value, &js_str("cipherText"));
+	assert!(
+		!camel_case.is_ok_and(|v| !v.is_undefined()),
+		"the camelCase spelling must not be produced"
+	);
+}
+
+#[wasm_bindgen_test]
+pub fn encrypt_output_reads_the_spec_field_names() {
+	let output = Object::new();
+	set(
+		&output,
+		"ciphertext",
+		Uint8Array::from(&[3u8, 1u8, 4u8][..]),
+	);
+	set(&output, "nonce", Uint8Array::from(&[9u8; 24][..]));
+
+	let output: wallet_standard_browser::BrowserExperimentalEncryptOutput = output.unchecked_into();
+	use wallet_standard::ExperimentalEncryptOutput;
+
+	assert_eq!(output.cipher_text(), vec![3u8, 1u8, 4u8]);
+	assert_eq!(output.nonce(), vec![9u8; 24]);
+}
+
+#[wasm_bindgen_test]
+pub fn js_rejections_keep_their_error_message() {
+	let error = wallet_standard::WalletError::from(JsValue::from(js_sys::Error::new("boom")));
+	assert_eq!(error, wallet_standard::WalletError::Js("boom".to_string()));
+
+	let plain = wallet_standard::WalletError::from(js_str("plain rejection"));
+	assert_eq!(
+		plain,
+		wallet_standard::WalletError::Js("plain rejection".to_string())
+	);
 }

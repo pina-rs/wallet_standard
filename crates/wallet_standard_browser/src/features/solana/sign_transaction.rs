@@ -7,9 +7,9 @@ use solana_transaction::versioned::TransactionVersion;
 use solana_transaction::versioned::VersionedTransaction;
 use typed_builder::TypedBuilder;
 use wallet_standard::SOLANA_SIGN_TRANSACTION;
+use wallet_standard::SolanaSignTransactionOptions;
 use wallet_standard::SolanaSignTransactionOutput;
 use wallet_standard::SolanaSignTransactionProps;
-use wallet_standard::SolanaSignTransactionPropsWithBytes;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
 use wallet_standard::WalletSolanaSignTransaction;
@@ -94,8 +94,16 @@ pub struct SolanaSignTransactionInput {
 	/// Account to use.
 	#[serde(with = "serde_wasm_bindgen::preserve")]
 	pub account: BrowserWalletAccountInfo,
-	#[serde(flatten)]
-	pub props: SolanaSignTransactionPropsWithBytes,
+	/// Versioned transaction, as serialized wire bytes.
+	#[serde(with = "serde_bytes")]
+	#[builder(setter(into))]
+	pub transaction: Vec<u8>,
+	/// Chain to use.
+	#[builder(default, setter(into))]
+	pub chain: Option<String>,
+	/// Additional options for the transaction.
+	#[builder(default, setter(into))]
+	pub options: Option<SolanaSignTransactionOptions>,
 }
 
 impl SolanaSignTransactionFeature {
@@ -131,17 +139,17 @@ impl SolanaSignTransactionFeature {
 
 				let input = SolanaSignTransactionInput::builder()
 					.account(account)
-					.props(SolanaSignTransactionPropsWithBytes {
-						transaction: bincode::serialize(&props.transaction)
+					.transaction(
+						bincode::serialize(&props.transaction)
 							.map_err(|_| WalletError::WalletSignTransaction)?,
-						chain: props.chain,
-						options: props.options,
-					})
+					)
+					.chain(props.chain)
+					.options(props.options)
 					.build();
 
 				Ok(input)
 			})
-			.collect::<WalletResult<Vec<_>>>();
+			.collect::<WalletResult<Vec<_>>>()?;
 
 		let js_inputs: Array = serde_wasm_bindgen::to_value(&inputs)?.dyn_into()?;
 		let js_results: Array = self._sign_transaction(js_inputs).await?.dyn_into()?;

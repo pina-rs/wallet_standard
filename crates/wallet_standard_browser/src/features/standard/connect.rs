@@ -73,7 +73,8 @@ impl WalletStandardConnect for BrowserWallet {
 		&mut self,
 		options: StandardConnectInput,
 	) -> WalletResult<Vec<Self::Account>> {
-		let accounts = self.connect_with_options(options).await?;
+		let feature = self.wallet.get_feature::<StandardConnectFeature>()?;
+		let accounts = feature.connect_with_options(options).await?;
 		let account = accounts
 			.first()
 			.cloned()

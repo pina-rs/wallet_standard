@@ -323,7 +323,7 @@ impl WalletInfo for BrowserWalletInfo {
 	fn features(&self) -> Vec<String> {
 		Object::keys(&self.features_object())
 			.into_iter()
-			.map(|value| value.as_string().unwrap_throw())
+			.filter_map(|value| value.as_string())
 			.collect::<Vec<_>>()
 	}
 
@@ -380,7 +380,13 @@ impl BrowserWalletAccountInfo {
 	///
 	/// Returns an error if the `BrowserWalletAccountInfoProps` is not valid.
 	pub fn try_new(props: &BrowserWalletAccountInfoProps) -> WalletResult<Self> {
-		let result = serde_wasm_bindgen::to_value(props)?.dyn_into::<BrowserWalletAccountInfo>()?;
+		// `unchecked_into` rather than `dyn_into`: the account type is an
+		// `#[wasm_bindgen(module = ...)]` extern, and an `instanceof` check
+		// would emit a named import of the type from `/js/app.js`, which does
+		// not export it — breaking module instantiation for any bundle that
+		// calls this constructor.
+		let result =
+			serde_wasm_bindgen::to_value(props)?.unchecked_into::<BrowserWalletAccountInfo>();
 
 		Ok(result)
 	}
@@ -433,22 +439,39 @@ impl Wallets {
 		})
 	}
 
+	/// Register Wallets, panicking if the page's registry rejects them.
+	///
+	/// Prefer [`Wallets::try_register`], which reports the failure instead of
+	/// taking down the WASM module: the registry is page-controlled JavaScript
+	/// and a hostile or frozen `register` function must not be able to panic a
+	/// dApp.
 	pub fn register(&self, wallets: &[BrowserWalletInfo]) -> Box<dyn Fn()> {
+		self.try_register(wallets)
+			.unwrap_or_else(|error| panic!("failed to register wallets: {error}"))
+	}
+
+	/// Register Wallets without panicking.
+	///
+	/// # Errors
+	///
+	/// Returns a [`WalletError::Js`] when the page's `register` function
+	/// throws or does not return an unregister function.
+	pub fn try_register(&self, wallets: &[BrowserWalletInfo]) -> WalletResult<Box<dyn Fn()>> {
 		let args = Array::new();
 
 		for wallet in wallets {
 			args.push(wallet.unchecked_ref());
 		}
 
-		let dispose: Function = self
+		let dispose = self
 			.register_fn()
 			.apply(self.unchecked_ref(), &args)
-			.unwrap()
-			.dyn_into()
-			.unwrap();
+			.map_err(WalletError::from)?
+			.dyn_into::<Function>()
+			.map_err(WalletError::from)?;
 
-		Box::new(move || {
+		Ok(Box::new(move || {
 			let _ = dispose.call0(&JsValue::NULL);
-		})
+		}))
 	}
 }

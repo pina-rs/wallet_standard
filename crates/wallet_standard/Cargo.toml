@@ -18,6 +18,7 @@ description = "An implementation of the solana wallet standard in rust"
 async-trait = { workspace = true, default-features = true }
 bincode = { workspace = true, default-features = true, optional = true }
 futures = { workspace = true, default-features = true }
+js-sys = { workspace = true, default-features = true, optional = true }
 serde = { workspace = true, default-features = true, features = ["derive"] }
 serde-wasm-bindgen = { workspace = true, default-features = true, optional = true }
 serde_bytes = { workspace = true, default-features = true }
@@ -38,7 +39,7 @@ wasm-bindgen = { workspace = true, default-features = true, optional = true }
 insta = { workspace = true, default-features = true, features = ["json", "redactions", "ron", "yaml"] }
 
 [features]
-browser = ["dep:serde-wasm-bindgen", "dep:wasm-bindgen"]
+browser = ["dep:js-sys", "dep:serde-wasm-bindgen", "dep:wasm-bindgen"]
 solana = [
 	"dep:bincode",
 	"dep:solana-commitment-config",

@@ -245,8 +245,16 @@ in
       exec = ''
         set -e
         cargo test_wallet_standard
+        test:browser
       '';
       description = "Run all tests across the crates";
+    };
+    "test:browser" = {
+      exec = ''
+        set -e
+        cargo test --package wallet_standard_browser --all-features --target wasm32-unknown-unknown
+      '';
+      description = "Run the browser test suite in headless Chrome.";
     };
     "coverage:all" = {
       exec = ''
