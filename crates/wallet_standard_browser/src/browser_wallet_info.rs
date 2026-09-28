@@ -49,6 +49,9 @@ extern "C" {
 #[wasm_bindgen(module = "/js/app.js")]
 extern "C" {
 	#[derive(Clone, Debug)]
+	/// A JavaScript wallet object discovered through the page's
+	/// `@wallet-standard/app` registry; its getters read the wallet's
+	/// metadata directly off the JS object.
 	pub type BrowserWalletInfo;
 	/// {@link `WalletVersion` | Version} of the Wallet Standard implemented by
 	/// the Wallet.
@@ -174,6 +177,9 @@ extern "C" {
 	#[wasm_bindgen(getter, method, js_name = icon)]
 	pub fn _icon(this: &BrowserWalletAccountInfo) -> Option<String>;
 	#[derive(Clone, Debug)]
+	/// The page's wallet registry. Wallets register themselves here and
+	/// apps poll it, which is the whole discovery mechanism of the
+	/// standard on the web.
 	pub type Wallets;
 	/// Get all Wallets that have been registered.
 	///
@@ -216,6 +222,11 @@ extern "C" {
 	#[wasm_bindgen(method, js_name = register, getter)]
 	pub fn register_fn(this: &Wallets) -> Function;
 
+	/// Acquire the page's wallet registry.
+	///
+	/// The registry arrives synchronously because it also replays every
+	/// wallet that registered before the app loaded, so first paint can
+	/// already show a wallet picker.
 	#[wasm_bindgen(js_name = getWallets)]
 	pub fn get_wallets() -> Wallets;
 }
@@ -241,6 +252,10 @@ impl Hash for BrowserWalletInfo {
 }
 
 impl BrowserWalletInfo {
+	/// A stable identity for this wallet's name and chains.
+	///
+	/// JavaScript object identity changes across reads, so UIs that key
+	/// selected-wallet state on the wallet need a value-based hash.
 	pub fn get_hash(&self) -> u64 {
 		let mut hasher = DefaultHasher::new();
 		self.name().hash(&mut hasher);
@@ -268,6 +283,11 @@ impl BrowserWalletInfo {
 		self.get_feature_option::<T>().is_some()
 	}
 
+	/// Whether the wallet implements the three `standard:` features.
+	///
+	/// Apps require this as a baseline: without connect, disconnect, and
+	/// events the wallet cannot participate in the standard's lifecycle,
+	/// regardless of which chain features it advertises.
 	pub fn is_standard_compatible(&self) -> bool {
 		self.is_feature_supported::<StandardConnectFeature>()
 			&& self.is_feature_supported::<StandardEventsFeature>()
@@ -276,9 +296,16 @@ impl BrowserWalletInfo {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
+/// The wallet's feature map, kept as the raw JavaScript object because
+/// feature entries are opaque until a specific feature wrapper requests
+/// them.
 pub struct BrowserWalletInfoFeatures(#[serde(with = "serde_wasm_bindgen::preserve")] Object);
 
 impl BrowserWalletInfoFeatures {
+	/// Attach a feature object to a wallet being registered.
+	///
+	/// Registration is all-or-nothing from the app's perspective: features
+	/// must be present on the JS object before it reaches the registry.
 	pub fn add_feature<T: FeatureFromJs>(&self, feature: &T) {
 		Reflect::set(&self.0, &JsValue::from_str(T::NAME), feature.as_ref())
 			.expect("failed to attach wallet feature object");
@@ -286,17 +313,32 @@ impl BrowserWalletInfoFeatures {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypedBuilder)]
+/// The Rust-side description of a wallet before it becomes a JavaScript
+/// object, used when a Rust implementation registers itself into the page.
 pub struct BrowserWalletInfoProps {
+	/// Wallet name shown by apps; must be unique and stable so users can
+	/// recognize it across dApps.
 	#[builder(setter(into))]
 	pub name: String,
+	/// Chains the wallet can serve; apps filter their wallet picker by
+	/// this list.
 	#[builder(default)]
 	pub chains: Vec<String>,
+	/// Wallet Standard version implemented, which tells apps which
+	/// feature contracts to expect.
 	#[builder(setter(into))]
 	pub version: String,
+	/// Icon as a data URL, so apps render the wallet without network
+	/// fetches or CORS dependencies.
 	#[builder(setter(into))]
 	pub icon: String,
+	/// Feature objects carrying the wallet's actual capabilities; the
+	/// names here must match features present on the object or apps will
+	/// fail when they request them.
 	#[builder(default)]
 	pub features: BrowserWalletInfoFeatures,
+	/// Accounts the app may use without a connect prompt, enabling
+	/// resuming a previous session on page load.
 	#[builder(default)]
 	pub accounts: Vec<BrowserWalletAccountInfoProps>,
 }
@@ -357,17 +399,29 @@ impl Hash for BrowserWalletAccountInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypedBuilder)]
+/// The Rust-side description of one account, the unit of authorization
+/// the wallet grants to an app.
 pub struct BrowserWalletAccountInfoProps {
+	/// Human-readable address in the chain's own encoding, so apps can
+	/// display it without deriving the format themselves.
 	#[builder(setter(into))]
 	pub address: String,
+	/// Raw public key bytes, which signing features match against their
+	/// signers.
 	#[builder(setter(into))]
 	pub public_key: Vec<u8>,
+	/// Subset of the wallet's chains this account may be used on.
 	#[builder(default)]
 	pub chains: Vec<String>,
+	/// Feature names this account may be used with; an account is only
+	/// useful for features it lists here.
 	#[builder(default)]
 	pub features: Vec<String>,
+	/// Optional display label, typically a account nickname the wallet
+	/// already showed the user.
 	#[builder(default)]
 	pub label: Option<String>,
+	/// Optional account icon as a data URL.
 	#[builder(default)]
 	pub icon: Option<String>,
 }

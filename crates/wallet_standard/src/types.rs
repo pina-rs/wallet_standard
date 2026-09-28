@@ -33,6 +33,8 @@ use crate::WalletStandardDisconnect;
 /// }
 /// ```
 pub trait WalletInfo {
+	/// The account type this wallet reports, so apps can iterate
+	/// authorized accounts without knowing the wallet implementation.
 	type Account: WalletAccountInfo;
 
 	/// {@link `WalletVersion` | Version} of the Wallet Standard implemented by
@@ -260,7 +262,9 @@ pub trait WalletAccountInfo {
 /// }
 /// ```
 pub trait Wallet {
+	/// The wallet metadata type exposed to apps.
 	type Wallet: WalletInfo;
+	/// The account type returned on connection and change events.
 	type Account: WalletAccountInfo;
 
 	/// Returns the wallet information.

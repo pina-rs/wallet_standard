@@ -30,6 +30,9 @@ impl ExperimentalEncryptOutput for BrowserExperimentalEncryptOutput {
 #[wasm_bindgen]
 extern "C" {
 	#[derive(Clone, Debug)]
+	/// The JavaScript `{ ciphertext, nonce }` output of an
+	/// `experimental:encrypt` call; field names follow
+	/// `@wallet-standard/experimental-features`.
 	pub type BrowserExperimentalEncryptOutput;
 	/// `ciphertext` that was encrypted.
 	#[wasm_bindgen(method, getter, js_name = "ciphertext")]
@@ -38,6 +41,8 @@ extern "C" {
 	#[wasm_bindgen(method, getter, js_name = "nonce")]
 	pub fn _nonce(this: &BrowserExperimentalEncryptOutput) -> Vec<u8>;
 	#[derive(Clone, Debug)]
+	/// The JavaScript `experimental:encrypt` feature object of a
+	/// registered wallet.
 	pub type ExperimentalEncryptFeature;
 	/// Version of the feature API.
 	#[wasm_bindgen(method, getter)]
@@ -62,11 +67,15 @@ impl_feature_from_js!(ExperimentalEncryptFeature, EXPERIMENTAL_ENCRYPT);
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
+/// The wire-format input for `experimental:encrypt`, flattened to the
+/// exact object the JavaScript feature receives.
 pub struct ExperimentalEncryptInput {
 	/// Account to use.
 	#[serde(with = "serde_wasm_bindgen::preserve")]
 	pub account: BrowserWalletAccountInfo,
 	#[serde(flatten)]
+	/// The cipher, counterparty public key, cleartext, and padding that
+	/// parameterize this encryption.
 	pub props: ExperimentalEncryptProps,
 }
 

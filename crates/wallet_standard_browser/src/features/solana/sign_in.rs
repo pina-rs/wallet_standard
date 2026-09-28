@@ -21,6 +21,8 @@ use crate::impl_feature_from_js;
 #[wasm_bindgen]
 extern "C" {
 	#[derive(Clone, Debug)]
+	/// The JavaScript output of a `solana:signIn` call: the account that
+	/// signed, the signed statement, and its signature.
 	pub type BrowserSolanaSignInOutput;
 	/// Account that was signed in.
 	/// The address of the account may be different from the provided input
@@ -40,12 +42,16 @@ extern "C" {
 	#[wasm_bindgen(method, getter)]
 	pub fn _signature_type(this: &BrowserSolanaSignInOutput) -> Option<String>;
 	#[derive(Clone, Debug)]
+	/// The JavaScript `solana:signIn` feature object of a registered
+	/// wallet.
 	pub type SolanaSignInFeature;
 	/// Version of the feature API.
 	#[wasm_bindgen(method, getter)]
 	pub fn version(this: &SolanaSignInFeature) -> String;
 	/// Sign In With Solana (based on <https://eips.ethereum.org/EIPS/eip-4361> and <https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-122.md>).
 	#[allow(unused_qualifications)]
+	/// The wallet-side JS `signIn` method, called with one input object
+	/// per statement.
 	#[wasm_bindgen(method, catch, variadic, js_name = signIn)]
 	pub async fn _sign_in(this: &SolanaSignInFeature, args: Array) -> Result<JsValue, JsValue>;
 }
@@ -83,6 +89,11 @@ impl SolanaSignInOutput for BrowserSolanaSignInOutput {
 impl_feature_from_js!(SolanaSignInFeature, SOLANA_SIGN_IN);
 
 impl SolanaSignInFeature {
+	/// Request signed login statements in one wallet round trip.
+	///
+	/// # Errors
+	///
+	/// Fails with [`WalletError::InvalidArguments`] for an empty batch.
 	pub async fn sign_in(
 		&self,
 		inputs: Vec<SolanaSignInInput>,

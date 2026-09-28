@@ -14,6 +14,8 @@ mod solana;
 mod standard;
 mod types;
 
+/// Everything a wallet or an app needs in one glob import, so downstream
+/// crates never depend on module paths that may shift between releases.
 pub mod prelude {
 	pub use super::ExperimentalDecryptOutput;
 	pub use super::ExperimentalEncryptOutput;

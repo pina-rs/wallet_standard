@@ -93,6 +93,8 @@ fn connect_feature() -> Object {
 	)
 }
 
+/// Reads name, chains, and features off a mock JS wallet through the
+/// `BrowserWalletInfo` getters.
 #[wasm_bindgen_test]
 pub fn wallet_info_reads_injected_wallet() {
 	let info = mock_wallet(
@@ -135,6 +137,8 @@ pub fn wallet_info_reads_injected_wallet() {
 	assert!(!wallet.connected());
 }
 
+/// Registers a wallet through the page registry and finds it again via
+/// `get_wallets`, the round trip discovery depends on.
 #[wasm_bindgen_test]
 pub fn try_register_and_discover_wallet() {
 	let info = mock_wallet("RegistryMock", &[("standard:connect", connect_feature())]);
@@ -151,6 +155,8 @@ pub fn try_register_and_discover_wallet() {
 	dispose();
 }
 
+/// Pins the connect behaviour: the feature resolves, and the trait
+/// implementation attaches the account instead of recursing into itself.
 #[wasm_bindgen_test]
 pub async fn connect_updates_the_attached_account() {
 	let info = mock_wallet("ConnectMock", &[("standard:connect", connect_feature())]);
@@ -209,6 +215,8 @@ fn shape_of(value: &JsValue) -> Vec<String> {
 }
 
 #[cfg(feature = "solana")]
+/// Pins the JS shape of a sign-message batch: an array of
+/// `{ account, message }` with the message as a `Uint8Array`.
 #[wasm_bindgen_test]
 pub fn sign_message_input_serializes_to_the_wire_format() {
 	let input = wallet_standard_browser::SolanaSignMessageInput::builder()
@@ -234,6 +242,9 @@ pub fn sign_message_input_serializes_to_the_wire_format() {
 }
 
 #[cfg(feature = "solana")]
+/// Pins the JS shape of a sign-transaction batch: flat wire-format
+/// inputs with the transaction as a `Uint8Array`, never a flattened
+/// struct.
 #[wasm_bindgen_test]
 pub fn sign_transaction_input_serializes_to_the_wire_format() {
 	let message = solana_message::Message::new(&[], None);
@@ -270,6 +281,8 @@ pub fn sign_transaction_input_serializes_to_the_wire_format() {
 }
 
 #[cfg(feature = "solana")]
+/// Pins the JS shape of a sign-and-send batch, mirroring the
+/// sign-transaction contract.
 #[wasm_bindgen_test]
 pub fn sign_and_send_input_serializes_to_the_wire_format() {
 	let message = solana_message::Message::new(&[], None);
@@ -303,6 +316,8 @@ pub fn sign_and_send_input_serializes_to_the_wire_format() {
 	);
 }
 
+/// Guards the experimental spec spelling: `ciphertext` as one word on
+/// the wire.
 #[wasm_bindgen_test]
 pub fn decrypt_props_serialize_ciphertext_as_one_word() {
 	let props = wallet_standard::ExperimentalDecryptProps::builder()
@@ -324,6 +339,8 @@ pub fn decrypt_props_serialize_ciphertext_as_one_word() {
 	);
 }
 
+/// Reads `ciphertext` and `nonce` off a JS encrypt output using the
+/// spec's field names.
 #[wasm_bindgen_test]
 pub fn encrypt_output_reads_the_spec_field_names() {
 	let output = Object::new();
@@ -341,6 +358,8 @@ pub fn encrypt_output_reads_the_spec_field_names() {
 	assert_eq!(output.nonce(), vec![9u8; 24]);
 }
 
+/// Rejecting with an `Error` must surface its message, not the opaque
+/// placeholder.
 #[wasm_bindgen_test]
 pub fn js_rejections_keep_their_error_message() {
 	let error = wallet_standard::WalletError::from(JsValue::from(js_sys::Error::new("boom")));

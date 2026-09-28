@@ -20,11 +20,15 @@ use crate::impl_feature_from_js;
 #[wasm_bindgen]
 extern "C" {
 	#[derive(Clone, Debug)]
+	/// The JavaScript `{ cleartext }` output of an
+	/// `experimental:decrypt` call.
 	pub type BrowserExperimentalDecryptOutput;
 	/// `cleartext` that was decrypted.
 	#[wasm_bindgen(method, getter, js_name = "cleartext")]
 	pub fn _cleartext(this: &BrowserExperimentalDecryptOutput) -> Vec<u8>;
 	#[derive(Clone, Debug)]
+	/// The JavaScript `experimental:decrypt` feature object of a
+	/// registered wallet.
 	pub type ExperimentalDecryptFeature;
 	/// Version of the feature API.
 	#[wasm_bindgen(method, getter)]
@@ -54,12 +58,16 @@ impl ExperimentalDecryptOutput for BrowserExperimentalDecryptOutput {
 impl_feature_from_js!(ExperimentalDecryptFeature, EXPERIMENTAL_DECRYPT);
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
+/// The wire-format input for `experimental:decrypt`, flattened to the
+/// exact object the JavaScript feature receives.
 pub struct ExperimentalDecryptInput {
 	/// Account to use.
 	#[serde(with = "serde_wasm_bindgen::preserve")]
 	pub account: BrowserWalletAccountInfo,
 
 	#[serde(flatten)]
+	/// The sender public key, ciphertext, and nonce that parameterize
+	/// this decryption.
 	pub props: ExperimentalDecryptProps,
 }
 

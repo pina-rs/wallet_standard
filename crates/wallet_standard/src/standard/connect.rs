@@ -35,6 +35,8 @@ pub const STANDARD_CONNECT: &str = "standard:connect";
 /// }
 /// ```
 pub trait StandardConnectOutput {
+	/// The account type produced by connecting, letting apps bind UI to the
+	/// concrete account representation the wallet provides.
 	type Account: WalletAccountInfo;
 
 	/// Returns the list of accounts that the app has been authorized to use.

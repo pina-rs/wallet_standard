@@ -191,6 +191,8 @@ impl SolanaSignMessageOutput for (Signature, Vec<u8>, Option<String>) {
 /// ```
 #[async_trait(?Send)]
 pub trait WalletSolanaSignMessage {
+	/// The wallet-specific output type, kept associated so implementations
+	/// can carry extra signing metadata alongside the signature.
 	type Output: SolanaSignMessageOutput;
 
 	/// Sign a message using the account's secret key.

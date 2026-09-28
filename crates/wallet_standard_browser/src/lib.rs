@@ -14,6 +14,9 @@ mod constants;
 mod features;
 mod types;
 
+/// Everything a browser dApp or wallet implementation needs in one glob
+/// import, re-exporting the core prelude plus the browser-only JS bridge
+/// types.
 pub mod prelude {
 	pub use wallet_standard::prelude::*;
 
