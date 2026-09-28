@@ -265,11 +265,19 @@ jobs:
         shell: /usr/bin/bash -e {0}
 
       - name: run playwright suite
-        run: npx playwright test
+        run: |
+          # Ground truth for the chromium launch environment; Playwright's
+          # own host validation reports every system library as missing under
+          # the nix-patched PATH, so it is skipped and verified manually.
+          echo "ldd: $(command -v ldd)"
+          ldd --version | head -n 1
+          ldd "$HOME/.cache/ms-playwright"/chromium-*/chrome-linux/chrome | grep -c "not found" || true
+          npx playwright test
         working-directory: examples/e2e
         shell: /usr/bin/bash -e {0}
         env:
           CI: "true"
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: "1"
 
       - name: upload playwright report
         if: failure()
