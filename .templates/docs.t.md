@@ -46,7 +46,9 @@ wallet_standard_browser = "{{ cargo.workspace.package.version }}"
 | `solana:signMessage`                 | `WalletSolanaSignMessage`            |
 | `solana:signTransaction`             | `WalletSolanaSignTransaction`        |
 | `solana:signAndSendTransaction`      | `WalletSolanaSignAndSendTransaction` |
+| `solana:signAndSendAllTransactions`  | `WalletSolanaSignAndSendAllTransactions` |
 | `solana:signIn`                      | `WalletSolanaSignIn`                 |
+| `solana:signOffchainMessage`         | `WalletSolanaSignOffchainMessage`   |
 | `experimental:encrypt`               | `WalletExperimentalEncrypt`          |
 | `experimental:decrypt`               | `WalletExperimentalDecrypt`          |
 

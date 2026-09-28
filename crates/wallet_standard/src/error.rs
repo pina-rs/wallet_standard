@@ -68,6 +68,10 @@ pub enum WalletError {
 	/// The wallet only signs certain transaction versions, and this
 	/// transaction is not one of them.
 	UnsupportedTransactionVersion,
+	/// The wallet only constructs certain offchain message versions, and
+	/// this message is not one of them.
+	#[error("The offchain message version is not supported by this wallet")]
+	UnsupportedMessageVersion,
 	#[error("Wallet account not connected")]
 	/// No account is attached to the wallet yet; connect before requesting
 	/// account-scoped operations.
