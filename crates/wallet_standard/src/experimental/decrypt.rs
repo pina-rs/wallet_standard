@@ -24,6 +24,7 @@ pub struct ExperimentalDecryptProps {
 	pub public_key: Vec<u8>,
 	/// Ciphertext to decrypt.
 	#[builder(setter(into))]
+	#[serde(rename = "ciphertext")]
 	#[serde(with = "serde_bytes")]
 	pub cipher_text: Vec<u8>,
 	/// Nonce to use for decryption.

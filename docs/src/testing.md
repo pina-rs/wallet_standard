@@ -12,20 +12,31 @@ The alias runs `cargo nextest` with the `solana` feature. Snapshots live next to
 
 ## Browser tests
 
-`wallet_standard_browser` runs its test suite as `wasm-bindgen-test` against real browsers, driven by webdriver. The `test:validator` devenv script starts a local Solana test validator (agave from nixpkgs), waits for the RPC port, then runs the wasm tests through chromedriver:
+`wallet_standard_browser` runs its test suite as `wasm-bindgen-test` in headless Chrome, driven by chromedriver:
 
 ```bash
-# start validator + run chrome tests
-test:validator
+test:browser
 ```
 
-The browser tests exercise the full round trip: a Rust wallet registered into the page, discovered by the JS reference implementation, and used to sign transactions against the local validator.
+The browser tests cover the round trip a dApp depends on: wallets registered into the page are discovered through the bundled `@wallet-standard/app` registry, `standard:connect` resolves and attaches the account, and — most importantly — every input struct is asserted against the exact JavaScript shape that crosses the wasm boundary (`Uint8Array` bytes, flat wire-format keys). A regression in that serialization fails here instead of silently in downstream dApps.
+
+## End-to-end examples
+
+The Leptos and Dioxus example apps under `examples/` are compiled WASM bundles that embed a Rust Wallet Standard wallet and drive every Solana feature against a local [surfpool](https://github.com/solana-foundation/surfpool) node. The Playwright suite boots surfpool plus both dev servers and clicks through connect, airdrop, `signMessage` (verified locally), `signTransaction` + `sendTransaction`, and `signAndSendTransaction`:
+
+```bash
+cd examples/e2e
+npm install
+npx playwright test
+```
+
+This is the only layer that exercises the bundled output in a real browser, so bundling and glue defects surface here rather than in users' apps.
 
 ## Environment details
 
-- `WASM_BINDGEN_TEST_WEBDRIVER_JSON` points at `setup/webdriver.json`.
-- `wasm-bindgen-test-runner` comes from `cargo bin` (pinned to the exact `wasm-bindgen` version in `[workspace.metadata.bin]`).
-- The validator binds `127.0.0.1:8899`; `validator:kill` releases the port.
+- `WASM_BINDGEN_TEST_WEBDRIVER_JSON` points at `setup/webdriver.json` (headless Chrome capabilities).
+- `wasm-bindgen-test-runner` comes from `cargo bin` (pinned to the exact `wasm-bindgen` version in `[workspace.metadata.bin]`); chromedriver must be on `PATH` and match the installed Chrome major version — CI installs the matching build for the runner's Chrome.
+- `validator:run` / `validator:bg` / `validator:kill` manage a local Solana test validator on `127.0.0.1:8899` for manual experiments.
 
 ## Coverage
 

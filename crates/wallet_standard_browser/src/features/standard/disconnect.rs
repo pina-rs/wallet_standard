@@ -37,7 +37,8 @@ impl WalletStandardDisconnect for BrowserWallet {
 			return Err(WalletError::WalletDisconnected);
 		}
 
-		self.disconnect().await?;
+		let feature = self.wallet.get_feature::<StandardDisconnectFeature>()?;
+		feature.disconnect().await?;
 		self.wallet_account = None;
 
 		Ok(())

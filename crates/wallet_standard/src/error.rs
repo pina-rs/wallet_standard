@@ -88,14 +88,27 @@ impl From<core::fmt::Error> for WalletError {
 #[cfg(feature = "browser")]
 #[allow(unused_qualifications)]
 impl From<wasm_bindgen::JsValue> for WalletError {
-	#[allow(deprecated)]
 	fn from(source: wasm_bindgen::JsValue) -> Self {
-		WalletError::Js(
-			source
-				.as_string()
-				.unwrap_or("An error occurred in the JavaScript.".to_string()),
-		)
+		WalletError::Js(js_error_message(&source))
 	}
+}
+
+/// Render a rejected JavaScript value so failures are never opaque.
+///
+/// Wallets reject with plain strings, `Error` objects, and `DOMException`
+/// values. Only the first survives `JsValue::as_string`, which used to turn
+/// every other rejection into the same unhelpful placeholder.
+#[cfg(feature = "browser")]
+fn js_error_message(value: &wasm_bindgen::JsValue) -> String {
+	if let Some(message) = value.as_string() {
+		return message;
+	}
+	if let Ok(message) = js_sys::Reflect::get(value, &wasm_bindgen::JsValue::from_str("message"))
+		&& let Some(message) = message.as_string()
+	{
+		return message;
+	}
+	format!("An error occurred in the JavaScript: {value:?}")
 }
 #[cfg(feature = "solana")]
 impl From<solana_signer::SignerError> for WalletError {

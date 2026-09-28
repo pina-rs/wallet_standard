@@ -1,0 +1,103 @@
+:root {
+	color-scheme: dark;
+	font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+	margin: 0 auto;
+	max-width: 46rem;
+	padding: 2rem 1.25rem 4rem;
+	background: #0d1117;
+	color: #e6edf3;
+}
+
+header {
+	display: flex;
+	align-items: baseline;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+	margin-bottom: 1.5rem;
+}
+
+h1 {
+	font-size: 1.35rem;
+	margin: 0;
+}
+
+.badge {
+	font-size: 0.75rem;
+	padding: 0.2rem 0.6rem;
+	border-radius: 999px;
+	background: #1f6feb33;
+	color: #79c0ff;
+}
+
+section {
+	background: #161b22;
+	border: 1px solid #30363d;
+	border-radius: 10px;
+	padding: 1rem 1.25rem;
+	margin-bottom: 1rem;
+}
+
+section h2 {
+	font-size: 0.95rem;
+	margin: 0 0 0.75rem;
+	color: #79c0ff;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+}
+
+.row {
+	display: flex;
+	gap: 0.6rem;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+button {
+	font: inherit;
+	padding: 0.45rem 0.9rem;
+	border-radius: 8px;
+	border: 1px solid #30363d;
+	background: #21262d;
+	color: #e6edf3;
+	cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+	background: #30363d;
+}
+
+button:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+code,
+.value {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.85rem;
+	color: #7ee787;
+	word-break: break-all;
+}
+
+.status {
+	font-size: 0.85rem;
+	color: #8b949e;
+}
+
+.ok {
+	color: #7ee787;
+}
+
+.err {
+	color: #ff7b72;
+}
+
+label {
+	font-size: 0.8rem;
+	color: #8b949e;
+	display: block;
+	margin-bottom: 0.25rem;
+}

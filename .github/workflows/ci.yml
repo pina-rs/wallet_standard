@@ -129,3 +129,117 @@ jobs:
       - name: build all features
         run: build:all
         shell: devenv shell -c -- bash -e {0}
+
+  # `build:all` compiles the workspace with `--all-features`, which hides
+  # feature-graph gaps: the `solana` feature of `wallet_standard_browser`
+  # shipped without `dep:solana-transaction` because the all-features build
+  # enabled it implicitly. Every feature combination a downstream user can
+  # name is checked on its own, for both the native and wasm targets.
+  check-features:
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: check every feature combination
+        run: |
+          cargo check --locked -p wallet_standard --no-default-features
+          cargo check --locked -p wallet_standard --no-default-features --features solana
+          cargo check --locked -p wallet_standard --no-default-features --features browser
+          cargo check --locked -p wallet_standard --no-default-features --features browser,solana
+          cargo check --locked -p wallet_standard_browser --no-default-features
+          cargo check --locked -p wallet_standard_browser --features solana
+          cargo check --locked -p wallet_standard_browser --features solana --target wasm32-unknown-unknown
+        shell: devenv shell -c -- bash -e {0}
+
+  # The browser bridge is only observable in a real browser: the wasm tests
+  # cover wallet discovery, the connect flow, and the exact JavaScript shapes
+  # that cross the wasm boundary (a regression there fails here instead of
+  # silently in downstream dApps).
+  test-browser:
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # The runner image ships Google Chrome but not a matching chromedriver;
+      # `wasm-bindgen-test-runner` needs one on PATH.
+      - name: install matching chromedriver
+        run: |
+          chrome_version="$(google-chrome --version | awk '{print $3}')"
+          chrome_major="${chrome_version%%.*}"
+          driver_version="$(
+            curl -sSfL https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone.json \
+              | jq -r --arg major "$chrome_major" '.milestones[$major].version'
+          )"
+          echo "chrome $chrome_version -> chromedriver $driver_version"
+          curl -sSfL "https://storage.googleapis.com/chrome-for-testing-public/${driver_version}/linux64/chromedriver-linux64.zip" \
+            -o /tmp/chromedriver.zip
+          unzip -q /tmp/chromedriver.zip -d /tmp
+          echo "/tmp/chromedriver-linux64" >> "$GITHUB_PATH"
+          /tmp/chromedriver-linux64/chromedriver --version
+
+      - name: test wallet_standard_browser in a browser
+        run: cargo test --locked --package wallet_standard_browser --all-features --target wasm32-unknown-unknown
+        shell: devenv shell -c -- bash -e {0}
+
+  # End-to-end: the Leptos and Dioxus examples embed a Rust Wallet Standard
+  # wallet and drive it against a local surfpool node under Playwright. This
+  # is the only layer that exercises the compiled dApp bundles in a real
+  # browser, so it catches glue and bundling defects the wasm tests cannot.
+  e2e:
+    timeout-minutes: 45
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: setup
+        uses: ./.github/actions/devenv
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache-version: v2-e2e
+
+      - name: install surfpool
+        run: |
+          curl -sSfL https://github.com/solana-foundation/surfpool/releases/latest/download/surfpool-linux-x64.tar.gz \
+            -o /tmp/surfpool.tar.gz
+          sudo tar -xzf /tmp/surfpool.tar.gz -C /usr/local/bin surfpool
+          surfpool --version
+
+      - name: cache playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('examples/e2e/package-lock.json') }}
+
+      - name: install e2e dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+        working-directory: examples/e2e
+
+      - name: run playwright suite
+        run: npx playwright test
+        working-directory: examples/e2e
+        shell: devenv shell -c -- bash -e {0}
+        env:
+          CI: "true"

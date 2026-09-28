@@ -54,3 +54,7 @@ node_modules/
 lcov.info
 codecov.json
 /docs/book
+
+# example build artifacts
+examples/**/target/
+.surfpool/
