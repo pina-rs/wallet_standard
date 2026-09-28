@@ -12,6 +12,9 @@ export default defineConfig({
 	reporter: [["list"], ["html", { open: "never" }]],
 	use: {
 		headless: true,
+		// CI runners disable the user namespaces Chromium's sandbox needs;
+		// the tests only ever talk to localhost services.
+		chromiumSandbox: false,
 		trace: "retain-on-failure",
 	},
 	webServer: [
