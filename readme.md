@@ -14,10 +14,10 @@
 
 This repository contains Rust crates that implement the Wallet Standard for Solana, making it easier to interact with Solana in WebAssembly environments:
 
-| Crate                     | Version | Description                                                     |
-| ------------------------- | ------- | --------------------------------------------------------------- |
-| `wallet_standard`         | 0.6.0   | Core implementation of the wallet standard interface for Solana |
-| `wallet_standard_browser` | 0.6.0   | Browser-specific implementation of the wallet standard          |
+| Crate                     | Version                                                                            | Description                                                     |
+| ------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `wallet_standard`         | <!-- {~core-v:"{{ cargo.workspace.package.version }}"} --><!-- {/core-v} -->       | Core implementation of the wallet standard interface for Solana |
+| `wallet_standard_browser` | <!-- {~browser-v:"{{ cargo.workspace.package.version }}"} --><!-- {/browser-v} --> | Browser-specific implementation of the wallet standard          |
 
 ### Crate Details
 
@@ -33,18 +33,97 @@ This guide is for wallet developers who want to implement the Wallet Standard. T
 
 ### For New Wallets
 
-If you're building a new wallet from scratch, you can directly implement the traits provided by this library:
+If you're building a new wallet from scratch, implement the traits provided by this library:
 
-```rust
+<!-- {=example_implement_wallet|trim|codeBlock:"rust,ignore"} -->
+
+```rust,ignore
+use async_trait::async_trait;
 use wallet_standard::prelude::*;
 
-// Implement the required traits for your wallet
+// Define your wallet structure
+#[derive(Clone)]
 struct MyWallet {
-	// Your wallet implementation
+	name: String,
+	icon: String,
+	accounts: Vec<MyAccount>,
+	current_account: Option<MyAccount>,
 }
 
+// Define your account structure
+#[derive(Clone)]
+struct MyAccount {
+	address: String,
+	public_key: Vec<u8>,
+}
+
+// Implement WalletAccountInfo for your account
+impl WalletAccountInfo for MyAccount {
+	fn address(&self) -> String {
+		self.address.clone()
+	}
+
+	fn public_key(&self) -> Vec<u8> {
+		self.public_key.clone()
+	}
+
+	fn chains(&self) -> Vec<String> {
+		vec!["solana:mainnet".to_string()]
+	}
+
+	fn features(&self) -> Vec<String> {
+		vec![
+			STANDARD_CONNECT.to_string(),
+			STANDARD_DISCONNECT.to_string(),
+			SOLANA_SIGN_MESSAGE.to_string(),
+		]
+	}
+
+	fn label(&self) -> Option<String> {
+		Some("My Account".to_string())
+	}
+
+	fn icon(&self) -> Option<String> {
+		None
+	}
+}
+
+// Implement WalletInfo for your wallet
+impl WalletInfo for MyWallet {
+	type Account = MyAccount;
+
+	fn version(&self) -> String {
+		"1.0.0".to_string()
+	}
+
+	fn name(&self) -> String {
+		self.name.clone()
+	}
+
+	fn icon(&self) -> String {
+		self.icon.clone()
+	}
+
+	fn chains(&self) -> Vec<String> {
+		vec!["solana:mainnet".to_string()]
+	}
+
+	fn features(&self) -> Vec<String> {
+		vec![
+			STANDARD_CONNECT.to_string(),
+			STANDARD_DISCONNECT.to_string(),
+			SOLANA_SIGN_MESSAGE.to_string(),
+		]
+	}
+
+	fn accounts(&self) -> Vec<Self::Account> {
+		self.accounts.clone()
+	}
+}
+
+// Implement Wallet for your wallet: metadata plus the current account
 impl Wallet for MyWallet {
-	type Account = MyWalletAccount;
+	type Account = MyAccount;
 	type Wallet = Self;
 
 	fn wallet(&self) -> Self::Wallet {
@@ -52,51 +131,42 @@ impl Wallet for MyWallet {
 	}
 
 	fn wallet_account(&self) -> Option<Self::Account> {
-		// Return the currently connected account if available
+		self.current_account.clone()
 	}
 }
 
-// Implement WalletStandardConnect and WalletStandardDisconnect
+// Implement WalletStandardConnect
 #[async_trait(?Send)]
 impl WalletStandardConnect for MyWallet {
 	async fn connect(&mut self) -> WalletResult<Vec<Self::Account>> {
-		// Implementation for connecting to the wallet
+		// Prompt the user and authorize an account, for example:
+		if let Some(account) = self.accounts.first().cloned() {
+			self.current_account = Some(account.clone());
+			Ok(vec![account])
+		} else {
+			Err(WalletError::WalletConnection)
+		}
 	}
 
 	async fn connect_with_options(
 		&mut self,
-		options: StandardConnectInput,
+		_options: StandardConnectInput,
 	) -> WalletResult<Vec<Self::Account>> {
-		// Implementation with options
+		self.connect().await
 	}
 }
 
+// Implement WalletStandardDisconnect; WalletStandard follows automatically.
 #[async_trait(?Send)]
 impl WalletStandardDisconnect for MyWallet {
 	async fn disconnect(&mut self) -> WalletResult<()> {
-		// Implementation for disconnecting from the wallet
+		self.current_account = None;
+		Ok(())
 	}
 }
-
-// For Solana wallets, implement the Solana-specific traits
-#[async_trait(?Send)]
-impl WalletSolanaSignMessage for MyWallet {
-	type Output = MySignMessageOutput;
-
-	async fn sign_message_async(&self, message: impl Into<Vec<u8>>) -> WalletResult<Self::Output> {
-		// Implementation for signing messages
-	}
-
-	async fn sign_messages<M: Into<Vec<u8>>>(
-		&self,
-		messages: Vec<M>,
-	) -> WalletResult<Vec<Self::Output>> {
-		// Implementation for signing multiple messages
-	}
-}
-
-// Implement other required traits...
 ```
+
+<!-- {/example_implement_wallet} -->
 
 ### For Existing Wallets
 

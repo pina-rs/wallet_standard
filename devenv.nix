@@ -334,8 +334,16 @@ in
         lint:clippy
         lint:monochange
         lint:format
+        lint:docs
       '';
       description = "Run all checks.";
+    };
+    "lint:docs" = {
+      exec = ''
+        set -e
+        mdt check
+      '';
+      description = "Check that single-sourced documentation is in sync.";
     };
     "lint:format" = {
       exec = ''

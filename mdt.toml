@@ -1,0 +1,21 @@
+# Documentation is single-sourced: providers live in `.templates/*.t.md`,
+# consumers live in the readmes, the mdBook pages, and rustdoc comments.
+# `mdt check` fails CI when a consumer drifts from its provider.
+
+[data]
+cargo = "Cargo.toml"
+
+# dprint rewraps injected fences and tables; compare whitespace-normalized
+# so `mdt update` and `lint:format` converge instead of ping-ponging.
+[check]
+comparison = "lenient"
+
+[padding]
+before = 0
+after = 0
+
+# Converge with dprint so `mdt update` and `lint:format` agree byte for byte.
+[[formatters]]
+command = "dprint fmt --stdin \"{{ filePath }}\""
+patterns = ["**/*.md", "**/*.rs", "**/*.toml"]
+ignore = ["**/*.t.md"]

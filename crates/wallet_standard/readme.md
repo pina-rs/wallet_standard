@@ -22,17 +22,29 @@ cargo add wallet_standard
 
 Or directly add the following to your `Cargo.toml`:
 
+<!-- {=install_deps|trim|codeBlock:"toml"} -->
+
 ```toml
 [dependencies]
-wallet_standard = "0.5.1"
+# Core protocol traits (required)
+wallet_standard = "0.7.0"
+
+# Browser/WASM integration (only for wasm32 targets)
+wallet_standard_browser = "0.7.0"
 ```
+
+<!-- {/install_deps} -->
 
 ### Features
 
-| Feature   | Description                                                      |
-| --------- | ---------------------------------------------------------------- |
-| `browser` | Enables browser-specific functionality with wasm-bindgen support |
-| `solana`  | Enables Solana-specific functionality                            |
+<!-- {=feature_table_core|trim} -->
+
+| Feature                | Description                                                                                                                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `solana` _(optional)_  | Enables the Solana feature namespace: signing traits, Solana types, and the `solana:*` chain identifiers. Pulls in the Agave primitives (`solana-keypair`, `solana-transaction`, ...). |
+| `browser` _(optional)_ | Enables serde/wasm-bindgen helpers for browser serialization of props and outputs.                                                                                                     |
+
+<!-- {/feature_table_core} -->
 
 ## Core Concepts
 
@@ -44,40 +56,39 @@ The Wallet Standard defines several key concepts:
 
 ## Key Traits
 
-### Core Traits
+Every Wallet Standard concept maps onto one trait:
 
-- `Wallet`: The base trait for all wallet implementations
-- `WalletInfo`: Provides information about the wallet (name, icon, supported chains)
-- `WalletAccountInfo`: Provides information about wallet accounts
-- `WalletStandard`: Combines the core wallet functionality
+<!-- {=trait_mapping_table|trim} -->
 
-### Standard Features
+| Wallet Standard concept              | Rust trait                           |
+| ------------------------------------ | ------------------------------------ |
+| `Wallet` object metadata             | `WalletInfo`                         |
+| `WalletAccount` object               | `WalletAccountInfo`                  |
+| `Wallet` + current account           | `Wallet`                             |
+| `standard:connect`                   | `WalletStandardConnect`              |
+| `standard:disconnect`                | `WalletStandardDisconnect`           |
+| `standard:events` (connected wallet) | `ConnectedWalletStandardEvents`      |
+| `solana:signMessage`                 | `WalletSolanaSignMessage`            |
+| `solana:signTransaction`             | `WalletSolanaSignTransaction`        |
+| `solana:signAndSendTransaction`      | `WalletSolanaSignAndSendTransaction` |
+| `solana:signIn`                      | `WalletSolanaSignIn`                 |
+| `experimental:encrypt`               | `WalletExperimentalEncrypt`          |
+| `experimental:decrypt`               | `WalletExperimentalDecrypt`          |
 
-- `WalletStandardConnect`: For connecting to a wallet and authorizing accounts
-- `WalletStandardDisconnect`: For disconnecting from a wallet
-- `ConnectedWalletStandardEvents`: For listening to wallet events
-
-### Solana-Specific Traits
-
-- `WalletSolanaSignMessage`: For signing arbitrary messages
-- `WalletSolanaSignTransaction`: For signing transactions
-- `WalletSolanaSignAndSendTransaction`: For signing and sending transactions
-- `WalletSolanaSignIn`: For implementing Sign-In With Solana (SIWS)
-
-### Experimental Features
-
-- `WalletExperimentalEncrypt`: For encrypting data
-- `WalletExperimentalDecrypt`: For decrypting data
+<!-- {/trait_mapping_table} -->
 
 ## Usage Examples
 
 ### Implementing a Basic Wallet
 
-```rust
+<!-- {=example_implement_wallet|trim|codeBlock:"rust,ignore"} -->
+
+```rust,ignore
 use async_trait::async_trait;
 use wallet_standard::prelude::*;
 
 // Define your wallet structure
+#[derive(Clone)]
 struct MyWallet {
 	name: String,
 	icon: String,
@@ -156,7 +167,7 @@ impl WalletInfo for MyWallet {
 	}
 }
 
-// Implement Wallet for your wallet
+// Implement Wallet for your wallet: metadata plus the current account
 impl Wallet for MyWallet {
 	type Account = MyAccount;
 	type Wallet = Self;
@@ -174,8 +185,7 @@ impl Wallet for MyWallet {
 #[async_trait(?Send)]
 impl WalletStandardConnect for MyWallet {
 	async fn connect(&mut self) -> WalletResult<Vec<Self::Account>> {
-		// Implement connection logic
-		// For example, prompt the user to select an account
+		// Prompt the user and authorize an account, for example:
 		if let Some(account) = self.accounts.first().cloned() {
 			self.current_account = Some(account.clone());
 			Ok(vec![account])
@@ -192,7 +202,7 @@ impl WalletStandardConnect for MyWallet {
 	}
 }
 
-// Implement WalletStandardDisconnect
+// Implement WalletStandardDisconnect; WalletStandard follows automatically.
 #[async_trait(?Send)]
 impl WalletStandardDisconnect for MyWallet {
 	async fn disconnect(&mut self) -> WalletResult<()> {
@@ -201,6 +211,8 @@ impl WalletStandardDisconnect for MyWallet {
 	}
 }
 ```
+
+<!-- {/example_implement_wallet} -->
 
 ### Implementing Solana-Specific Features
 

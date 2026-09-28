@@ -30,6 +30,15 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # The pinned `mdt` markdown-template tool that keeps the readmes,
+      # mdBook pages, and rustdoc comments single-sourced.
+      - name: install mdt
+        run: |
+          curl -sSfL https://github.com/ifiokjr/mdt/releases/download/v0.9.5/mdt-x86_64-unknown-linux-musl-v0.9.5.tar.gz \
+            -o /tmp/mdt.tar.gz
+          sudo tar -xzf /tmp/mdt.tar.gz -C /usr/local/bin mdt
+          mdt --version
+
       - name: lint all
         run: lint:all
         shell: devenv shell -c -- bash -e {0}

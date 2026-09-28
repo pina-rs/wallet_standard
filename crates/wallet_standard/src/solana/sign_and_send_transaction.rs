@@ -98,9 +98,14 @@ pub enum SolanaSignAndSendTransactionMode {
 #[async_trait(?Send)]
 /// Signs and broadcasts transactions in one wallet-controlled step.
 ///
-/// Apps that do not need to aggregate or relay transactions should prefer
-/// this over [`WalletSolanaSignTransaction`], because the wallet keeps
-/// custody of the signed payload end to end.
+/// <!-- {=sign_and_send_rationale|trim|linePrefix:"/// ":true} -->
+/// `solana:signAndSendTransaction` is the safer counterpart to
+/// `solana:signTransaction`: the wallet signs **and broadcasts**, so a
+/// malicious app never holds a signed transaction it could replay or
+/// redirect. Apps that need to aggregate signatures, batch, or relay
+/// transactions themselves use `solana:signTransaction` instead — wallets
+/// that refuse to hand back signed payloads simply do not implement it.
+/// <!-- {/sign_and_send_rationale} -->
 pub trait WalletSolanaSignAndSendTransaction {
 	/// The wallet-specific output type carrying the broadcast signature.
 	type Output: SolanaSignAndSendTransactionOutput;
