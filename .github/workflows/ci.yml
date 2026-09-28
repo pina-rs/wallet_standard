@@ -196,7 +196,10 @@ jobs:
           /tmp/chromedriver-linux64/chromedriver --version
 
       - name: test wallet_standard_browser in a browser
-        run: cargo test --locked --package wallet_standard_browser --all-features --target wasm32-unknown-unknown
+        # `LD_LIBRARY_PATH` from the devenv profile makes the system Chrome
+        # load nix libraries and exit before the session opens; the wasm
+        # build itself is pure Rust and does not need it.
+        run: env -u LD_LIBRARY_PATH cargo test --locked --package wallet_standard_browser --all-features --target wasm32-unknown-unknown
         shell: devenv shell -c -- bash -e {0}
 
   # End-to-end: the Leptos and Dioxus examples embed a Rust Wallet Standard
@@ -217,6 +220,20 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache-version: v2-e2e
+
+      # `devenv shell` does not inherit the runner's node installation, and
+      # the Playwright web servers need cargo, trunk, and wasm-bindgen from
+      # the devenv profile alongside node — so expose the profile binaries on
+      # PATH and run the suite in the default shell.
+      - name: expose the devenv toolchain on PATH
+        run: |
+          profile="$(devenv shell -- bash -c 'printf %s "${DEVENV_PROFILE:-}" >&3' 3>&1 1>/dev/null)"
+          if [[ -z "$profile" || ! -d "$profile/bin" ]]; then
+            echo "devenv profile was not resolved to a bin directory: '$profile'" >&2
+            exit 1
+          fi
+          echo "$profile/bin" >> "$GITHUB_PATH"
+          echo "$PWD/.bin" >> "$GITHUB_PATH"
 
       - name: install surfpool
         run: |
@@ -240,6 +257,5 @@ jobs:
       - name: run playwright suite
         run: npx playwright test
         working-directory: examples/e2e
-        shell: devenv shell -c -- bash -e {0}
         env:
           CI: "true"
