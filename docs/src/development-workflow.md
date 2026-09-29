@@ -8,20 +8,21 @@ This repository uses [devenv](https://devenv.sh) for a hermetic development envi
 devenv shell   # or: direnv allow
 ```
 
-The environment provides the pinned Rust toolchain (from `rust-toolchain.toml` via rustup), agave (for the test validator), mdbook, and all lint/security tooling (cargo-deny, cargo-audit, zizmor, gitleaks) sourced through `ifiokjr/nixpkgs` where upstream packaging lags.
+The environment provides the pinned Rust toolchain (from `rust-toolchain.toml` via rustup), agave (for the test validator), mdbook, `monochange` and `mdt` (the release planner and the documentation template engine), and all lint/security tooling (cargo-deny, cargo-audit, zizmor, gitleaks) sourced through `ifiokjr/nixpkgs` where upstream packaging lags.
 
 ## Daily commands
 
-| Command          | Description                                                |
-| ---------------- | ---------------------------------------------------------- |
-| `build:all`      | Build all crates with all features.                        |
-| `test:all`       | Run the native test suite.                                 |
-| `test:validator` | Start a local validator and run the browser tests.         |
-| `lint:all`       | clippy + dprint format check.                              |
-| `fix:all`        | Apply clippy and dprint fixes.                             |
-| `update:deps`    | `cargo update` + `devenv update` + refresh the bundled JS. |
-| `security:all`   | cargo-deny + cargo-audit + zizmor.                         |
-| `build:docs`     | Build this book (`mdbook build docs`).                     |
+| Command          | Description                                                          |
+| ---------------- | -------------------------------------------------------------------- |
+| `build:all`      | Build all crates with all features.                                  |
+| `test:all`       | Run the native test suite.                                           |
+| `test:validator` | Start a local validator and run the browser tests.                   |
+| `lint:all`       | clippy + monochange + dprint format check + mdt docs check.          |
+| `fix:all`        | Apply clippy and dprint fixes.                                       |
+| `fix:docs`       | Re-sync the single-sourced docs from their providers (`mdt update`). |
+| `update:deps`    | `cargo update` + `devenv update` + refresh the bundled JS.           |
+| `security:all`   | cargo-deny + cargo-audit + zizmor.                                   |
+| `build:docs`     | Build this book (`mdbook build docs`).                               |
 
 ## Formatting
 

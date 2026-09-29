@@ -33,8 +33,11 @@ Releases are planned by [MonoChange](https://github.com/pina-rs/monochange):
 2. **Release PR** — when changesets exist on `main`, the `release-pr` workflow runs `monochange run release`, which:
    - computes the next version per package from the changesets,
    - updates `Cargo.toml` versions and `Cargo.lock`,
+   - re-syncs the single-sourced documentation (`fix:docs`), because the `install_deps` block interpolates the workspace version into the readmes and the getting-started page,
    - refreshes the changelog,
    - opens (or updates) the `monochange/release/*` pull request.
+
+   The docs sync runs inside the release commit on purpose: a separate follow-up commit would leave the release tag pointing at a revision whose readmes still named the previous version.
 
 3. **Publish** — merging the release PR tags and dispatches the `publish` workflow, which publishes every package in dependency order using **trusted publishing** (crates.io OIDC, `environment: publisher`). No registry tokens are stored in the repository.
 
@@ -50,7 +53,7 @@ release:local
 publish:local
 ```
 
-`release:local` runs the same monochange release steps as CI (`PrepareRelease` → format → commit), and `publish:local` runs `PublishPackages` with the local cargo credentials.
+`release:local` runs the same monochange release steps as CI (`PrepareRelease` → docs sync → format → commit), and `publish:local` runs `PublishPackages` with the local cargo credentials.
 
 ## Versioning rules
 

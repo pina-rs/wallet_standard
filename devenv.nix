@@ -27,6 +27,7 @@ in
       cmake
       curl
       custom.agave
+      custom.mdt
       custom.monochange
       dprint
       gcc
@@ -341,12 +342,22 @@ in
     "lint:docs" = {
       exec = ''
         set -e
-        # devenv shells do not inherit /usr/local/bin, where CI installs the
-        # pinned mdt release; local shells already provide it via the profile.
-        export PATH="$PATH:/usr/local/bin"
         mdt check
       '';
       description = "Check that single-sourced documentation is in sync.";
+    };
+    "fix:docs" = {
+      exec = ''
+        set -e
+        # The release commit rewrites `[workspace.package.version]`, and the
+        # `install_deps` provider interpolates that version, so a release left
+        # the readmes and getting-started page stale and failed `lint:docs` on
+        # the release pull request. Syncing here keeps every generated copy of
+        # the version in the same commit as the bump, instead of a follow-up
+        # commit that would make the tag differ from the release notes.
+        mdt update
+      '';
+      description = "Sync single-sourced documentation from its providers.";
     };
     "lint:format" = {
       exec = ''
