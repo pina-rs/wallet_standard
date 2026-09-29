@@ -41,7 +41,7 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: build documentation
-        run: docs:build
+        run: build:docs
         shell: devenv shell -c -- bash -e {0}
 
       - name: upload pages artifact
