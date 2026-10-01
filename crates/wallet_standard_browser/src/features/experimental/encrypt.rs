@@ -6,7 +6,6 @@ use typed_builder::TypedBuilder;
 use wallet_standard::EXPERIMENTAL_ENCRYPT;
 use wallet_standard::ExperimentalEncryptOutput;
 use wallet_standard::ExperimentalEncryptProps;
-
 use wallet_standard::WalletError;
 use wallet_standard::WalletExperimentalEncrypt;
 use wallet_standard::WalletResult;

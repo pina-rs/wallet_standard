@@ -10,7 +10,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use typed_builder::TypedBuilder;
 use wallet_standard::WalletAccountInfo;
-
 use wallet_standard::WalletError;
 use wallet_standard::WalletInfo;
 use wallet_standard::WalletResult;

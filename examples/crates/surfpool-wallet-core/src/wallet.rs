@@ -23,7 +23,6 @@ use js_sys::Object;
 use js_sys::Promise;
 use js_sys::Reflect;
 use js_sys::Uint8Array;
-
 use solana_keypair::Keypair;
 use solana_signature::Signature;
 use solana_signer::Signer;
@@ -32,7 +31,6 @@ use wallet_standard_browser::BrowserWallet;
 use wallet_standard_browser::BrowserWalletAccountInfo;
 use wallet_standard_browser::BrowserWalletInfo;
 use wallet_standard_browser::register_wallet;
-
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::closure::Closure;

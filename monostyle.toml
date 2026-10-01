@@ -14,13 +14,13 @@ tab-width = 4
 
 [rules.ignore]
 patterns = [
-  "CHANGELOG.md",
-  "**/CHANGELOG.md",
-  "**/changelog.md",
-  "**/*.g.dart",
-  "**/*.freezed.dart",
-  "**/*.pb.rs",
-  "**/*.pb.go",
-  "**/*.gen.ts",
-  "**/*.min.js",
+	"CHANGELOG.md",
+	"**/CHANGELOG.md",
+	"**/changelog.md",
+	"**/*.g.dart",
+	"**/*.freezed.dart",
+	"**/*.pb.rs",
+	"**/*.pb.go",
+	"**/*.gen.ts",
+	"**/*.min.js",
 ]

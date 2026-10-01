@@ -8,7 +8,6 @@ use solana_transaction::versioned::VersionedTransaction;
 use wallet_standard::SolanaSignAndSendTransactionOptions;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignTransactionProps;
-
 use wallet_standard::WalletResult;
 
 /// A minimal legacy transfer transaction (no lookup tables, one signature).

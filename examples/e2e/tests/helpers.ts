@@ -35,7 +35,9 @@ export async function runWalletFlow(page: Page) {
 
 	await page.getByTestId("sign-message").click();
 	const signStatus = page.getByTestId("sign-message-status");
-	await expect(signStatus).toContainText("signature", { timeout: LOCAL_STATE_TIMEOUT_MS });
+	await expect(signStatus).toContainText("signature", {
+		timeout: LOCAL_STATE_TIMEOUT_MS,
+	});
 	await expect(signStatus).toContainText("VALID");
 
 	await page.getByTestId("send-app").click();

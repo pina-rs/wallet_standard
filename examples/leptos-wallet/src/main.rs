@@ -16,7 +16,6 @@ use surfpool_wallet_core::rpc;
 use surfpool_wallet_core::tx;
 use surfpool_wallet_core::wallet as dev_wallet;
 use wallet_standard::SolanaSignTransactionOutput;
-
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::WalletAccountInfo;
 use wallet_standard::WalletSolanaSignAndSendTransaction;
@@ -128,13 +127,15 @@ async fn disconnect_flow(
 /// Ask the RPC node for the connected account's balance.
 async fn balance_flow(balance: RwSignal<Option<u64>>, log: RwSignal<Vec<String>>) {
 	match connected_address() {
-		Some(address) => match client().get_balance(&address).await {
-			Ok(lamports) => {
-				balance.set(Some(lamports));
-				append_log(&log, format!("balance: {lamports} lamports"));
+		Some(address) => {
+			match client().get_balance(&address).await {
+				Ok(lamports) => {
+					balance.set(Some(lamports));
+					append_log(&log, format!("balance: {lamports} lamports"));
+				}
+				Err(error) => append_log(&log, format!("balance failed: {error}")),
 			}
-			Err(error) => append_log(&log, format!("balance failed: {error}")),
-		},
+		}
 
 		None => append_log(&log, "connect a wallet first"),
 	}
@@ -205,11 +206,7 @@ async fn sign_message_flow(status: RwSignal<String>, busy: RwSignal<bool>) {
 }
 
 /// Sign and send the demo transfer with the dApp broadcasting it.
-async fn send_flow(
-	balance: RwSignal<Option<u64>>,
-	status: RwSignal<String>,
-	busy: RwSignal<bool>,
-) {
+async fn send_flow(balance: RwSignal<Option<u64>>, status: RwSignal<String>, busy: RwSignal<bool>) {
 	match send_transfer_app_side().await {
 		Ok(signature) => status.set(format!("sent and confirmed: {signature}")),
 		Err(error) => status.set(format!("send failed: {error}")),

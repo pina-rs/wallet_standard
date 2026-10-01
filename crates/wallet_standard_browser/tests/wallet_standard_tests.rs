@@ -17,7 +17,6 @@ use js_sys::Uint8Array;
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::Wallet;
 use wallet_standard::WalletAccountInfo;
-
 use wallet_standard::WalletInfo;
 use wallet_standard::WalletSolanaSignAndSendAllTransactions;
 use wallet_standard::WalletStandardConnect;
@@ -26,7 +25,6 @@ use wallet_standard_browser::BrowserWalletAccountInfo;
 use wallet_standard_browser::BrowserWalletAccountInfoProps;
 use wallet_standard_browser::BrowserWalletInfo;
 use wasm_bindgen::JsCast;
-
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 

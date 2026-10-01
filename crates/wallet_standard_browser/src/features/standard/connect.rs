@@ -6,7 +6,6 @@ use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
 use wallet_standard::WalletStandardConnect;
 use wasm_bindgen::JsCast;
-
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 

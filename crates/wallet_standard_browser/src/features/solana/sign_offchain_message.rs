@@ -6,7 +6,6 @@ use typed_builder::TypedBuilder;
 use wallet_standard::SOLANA_SIGN_OFFCHAIN_MESSAGE;
 use wallet_standard::SolanaOffchainMessageVersion;
 use wallet_standard::SolanaSignOffchainMessageOutput;
-
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;

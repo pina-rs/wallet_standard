@@ -6,7 +6,6 @@ use wallet_standard::SolanaSignAndSendAllTransactionsOptions;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
-
 use wallet_standard::WalletSettled;
 use wallet_standard::WalletSolanaSignAndSendAllTransactions;
 use wasm_bindgen::JsCast;
@@ -122,9 +121,11 @@ impl SolanaSignAndSendAllTransactionsFeature {
 							reason: WalletError::from(reason),
 						})
 					}
-					other => Err(WalletError::Serde(format!(
-						"unexpected settlement status `{other:?}`"
-					))),
+					other => {
+						Err(WalletError::Serde(format!(
+							"unexpected settlement status `{other:?}`"
+						)))
+					}
 				}
 			})
 			.collect()

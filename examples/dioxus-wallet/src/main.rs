@@ -16,7 +16,6 @@ use surfpool_wallet_core::rpc;
 use surfpool_wallet_core::tx;
 use surfpool_wallet_core::wallet as dev_wallet;
 use wallet_standard::SolanaSignTransactionOutput;
-
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::WalletAccountInfo;
 use wallet_standard::WalletSolanaSignAndSendTransaction;
@@ -155,13 +154,15 @@ async fn disconnect_flow(
 /// Ask the RPC node for the connected account's balance.
 async fn balance_flow(mut balance: Signal<Option<u64>>, mut log: Signal<Vec<String>>) {
 	match connected_address() {
-		Some(address) => match client().get_balance(&address).await {
-			Ok(lamports) => {
-				balance.set(Some(lamports));
-				append_log(&mut log, format!("balance: {lamports} lamports"));
+		Some(address) => {
+			match client().get_balance(&address).await {
+				Ok(lamports) => {
+					balance.set(Some(lamports));
+					append_log(&mut log, format!("balance: {lamports} lamports"));
+				}
+				Err(error) => append_log(&mut log, format!("balance failed: {error}")),
 			}
-			Err(error) => append_log(&mut log, format!("balance failed: {error}")),
-		},
+		}
 
 		None => append_log(&mut log, "connect a wallet first"),
 	}
