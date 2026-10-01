@@ -6,6 +6,7 @@ use solana_transaction::Transaction;
 use solana_transaction::versioned::TransactionVersion;
 use solana_transaction::versioned::VersionedTransaction;
 use typed_builder::TypedBuilder;
+
 use wallet_standard::SOLANA_SIGN_TRANSACTION;
 use wallet_standard::SolanaSignTransactionOptions;
 use wallet_standard::SolanaSignTransactionOutput;
@@ -14,6 +15,7 @@ use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
 use wallet_standard::WalletSolanaSignTransaction;
 use wasm_bindgen::JsCast;
+
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 
@@ -70,8 +72,8 @@ impl SolanaSignTransactionOutput for BrowserSolanaSignTransactionOutput {
 		if let Ok(value) = bincode::deserialize(&bytes) {
 			Ok(value)
 		} else {
-			// check if the wallet returns a legacy transaction and convert to a
-			// versioned transaction.
+			// A wallet built before versioned transactions signs the unversioned
+			// format; accept it so those wallets keep working.
 			let transaction: Transaction = bincode::deserialize::<Transaction>(&bytes)
 				.map_err(|_| WalletError::WalletSignTransaction)?;
 

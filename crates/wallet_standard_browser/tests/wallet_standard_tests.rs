@@ -17,6 +17,7 @@ use js_sys::Uint8Array;
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::Wallet;
 use wallet_standard::WalletAccountInfo;
+
 use wallet_standard::WalletInfo;
 use wallet_standard::WalletSolanaSignAndSendAllTransactions;
 use wallet_standard::WalletStandardConnect;
@@ -25,6 +26,7 @@ use wallet_standard_browser::BrowserWalletAccountInfo;
 use wallet_standard_browser::BrowserWalletAccountInfoProps;
 use wallet_standard_browser::BrowserWalletInfo;
 use wasm_bindgen::JsCast;
+
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 
@@ -47,6 +49,7 @@ fn set(target: &Object, key: &str, value: impl Into<JsValue>) {
 fn mock_feature(version: &str, methods: &[(&str, &str)]) -> Object {
 	let feature = Object::new();
 	set(&feature, "version", js_str(version));
+
 	for (name, body) in methods {
 		if body.starts_with("return ") {
 			set(&feature, name, Function::new_no_args(body));
@@ -58,6 +61,7 @@ fn mock_feature(version: &str, methods: &[(&str, &str)]) -> Object {
 			);
 		}
 	}
+
 	feature
 }
 
@@ -78,9 +82,11 @@ fn mock_wallet(name: &str, features: &[(&str, Object)]) -> BrowserWalletInfo {
 	set(&wallet, "chains", chains);
 
 	let features_object = Object::new();
+
 	for (feature_name, feature) in features {
 		set(&features_object, feature_name, feature.clone());
 	}
+
 	set(&wallet, "features", features_object);
 	set(&wallet, "accounts", Array::new());
 
@@ -205,7 +211,6 @@ pub async fn connect_updates_the_attached_account() {
 // because `#[serde(flatten)]` is not supported by `serde-wasm-bindgen`; every
 // input struct gets a shape test so a regression fails loudly here instead of
 // silently in dApps.
-
 fn mock_account() -> BrowserWalletAccountInfo {
 	BrowserWalletAccountInfo::try_new(
 		&BrowserWalletAccountInfoProps::builder()

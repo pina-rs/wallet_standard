@@ -6,6 +6,7 @@ use typed_builder::TypedBuilder;
 use wallet_standard::EXPERIMENTAL_DECRYPT;
 use wallet_standard::ExperimentalDecryptOutput;
 use wallet_standard::ExperimentalDecryptProps;
+
 use wallet_standard::WalletError;
 use wallet_standard::WalletExperimentalDecrypt;
 use wallet_standard::WalletResult;
@@ -36,7 +37,8 @@ extern "C" {
 	/// List of ciphers supported for decryption.
 	#[wasm_bindgen(method, getter)]
 	pub fn ciphers(this: &ExperimentalDecryptFeature) -> Vec<String>;
-	/// Decrypt cleartexts using the account's secret key.
+	/// Decrypt cleartexts using the account's secret key. Split from encrypt so
+	/// a dapp can hold the decrypt permission alone.
 	///
 	/// @param inputs Inputs for decryption.
 	///

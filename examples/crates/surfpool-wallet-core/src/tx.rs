@@ -8,6 +8,7 @@ use solana_transaction::versioned::VersionedTransaction;
 use wallet_standard::SolanaSignAndSendTransactionOptions;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::SolanaSignTransactionProps;
+
 use wallet_standard::WalletResult;
 
 /// A minimal legacy transfer transaction (no lookup tables, one signature).
@@ -52,6 +53,7 @@ pub fn deserialize_wire_transaction(bytes: &[u8]) -> WalletResult<VersionedTrans
 	if let Ok(transaction) = bincode::deserialize::<VersionedTransaction>(bytes) {
 		return Ok(transaction);
 	}
+
 	// The wallet may hand back a legacy transaction; upgrade it.
 	let legacy: solana_transaction::Transaction = bincode::deserialize(bytes)
 		.map_err(|_| wallet_standard::WalletError::WalletSignTransaction)?;

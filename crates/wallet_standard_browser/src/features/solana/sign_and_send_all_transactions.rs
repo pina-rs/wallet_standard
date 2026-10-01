@@ -6,6 +6,7 @@ use wallet_standard::SolanaSignAndSendAllTransactionsOptions;
 use wallet_standard::SolanaSignAndSendTransactionProps;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
+
 use wallet_standard::WalletSettled;
 use wallet_standard::WalletSolanaSignAndSendAllTransactions;
 use wasm_bindgen::JsCast;
@@ -83,10 +84,12 @@ impl SolanaSignAndSendAllTransactionsFeature {
 		}
 
 		let supported_transaction_versions = self.supported_transaction_versions()?;
+
 		for input in &inputs {
 			let transaction: solana_transaction::versioned::VersionedTransaction =
 				bincode::deserialize(&input.transaction)
 					.map_err(|_| WalletError::WalletSignTransaction)?;
+
 			if !supported_transaction_versions.contains(&transaction.version()) {
 				return Err(WalletError::UnsupportedTransactionVersion);
 			}
@@ -119,11 +122,9 @@ impl SolanaSignAndSendAllTransactionsFeature {
 							reason: WalletError::from(reason),
 						})
 					}
-					other => {
-						Err(WalletError::Serde(format!(
-							"unexpected settlement status `{other:?}`"
-						)))
-					}
+					other => Err(WalletError::Serde(format!(
+						"unexpected settlement status `{other:?}`"
+					))),
 				}
 			})
 			.collect()

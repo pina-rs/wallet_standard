@@ -6,6 +6,7 @@ use wallet_standard::SolanaSignInInput;
 use wallet_standard::SolanaSignInOutput;
 use wallet_standard::SolanaSignMessageOutput;
 use wallet_standard::SolanaSignatureOutput;
+
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;
 use wallet_standard::WalletSolanaPubkey;
@@ -134,11 +135,9 @@ impl WalletSolanaSignIn for BrowserWallet {
 
 		let inputs = inputs
 			.into_iter()
-			.map(|input| {
-				SolanaSignInInput {
-					address: Some(address.clone()),
-					..input
-				}
+			.map(|input| SolanaSignInInput {
+				address: Some(address.clone()),
+				..input
 			})
 			.collect();
 

@@ -6,6 +6,7 @@ use solana_signature::Signature;
 use typed_builder::TypedBuilder;
 use wallet_standard::SOLANA_SIGN_MESSAGE;
 use wallet_standard::SolanaSignMessageOutput;
+
 use wallet_standard::SolanaSignatureOutput;
 use wallet_standard::WalletError;
 use wallet_standard::WalletResult;

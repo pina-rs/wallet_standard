@@ -23,6 +23,7 @@ use js_sys::Object;
 use js_sys::Promise;
 use js_sys::Reflect;
 use js_sys::Uint8Array;
+
 use solana_keypair::Keypair;
 use solana_signature::Signature;
 use solana_signer::Signer;
@@ -31,6 +32,7 @@ use wallet_standard_browser::BrowserWallet;
 use wallet_standard_browser::BrowserWalletAccountInfo;
 use wallet_standard_browser::BrowserWalletInfo;
 use wallet_standard_browser::register_wallet;
+
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::closure::Closure;
@@ -93,12 +95,14 @@ fn js_to_bytes(value: &JsValue) -> Vec<u8> {
 	if let Ok(array) = value.clone().dyn_into::<Uint8Array>() {
 		return array.to_vec();
 	}
+
 	if let Ok(array) = value.clone().dyn_into::<Array>() {
 		return array
 			.iter()
 			.filter_map(|item| item.as_f64().map(|number| number as u8))
 			.collect();
 	}
+
 	Vec::new()
 }
 
@@ -127,9 +131,11 @@ fn account_object() -> Object {
 
 fn accounts_array() -> Array {
 	let accounts = Array::new();
+
 	if CONNECTED.with(|connected| *connected.borrow()) {
 		accounts.push(&account_object().into());
 	}
+
 	accounts
 }
 
@@ -144,18 +150,23 @@ fn emit_change() {
 
 fn sign_message_outputs(inputs: &[JsValue]) -> Result<JsValue, String> {
 	let outputs = Array::new();
+
 	for input in inputs {
 		let message = Reflect::get(input, &js_str("message")).unwrap_or(JsValue::UNDEFINED);
 		let message = js_to_bytes(&message);
+
 		if message.is_empty() {
 			return Err("`message` must be non-empty bytes".to_string());
 		}
+
 		let signature = KEYPAIR.with(|keypair| keypair.sign_message(&message));
 		let output = Object::new();
+
 		set(&output, "signedMessage", bytes_to_js(&message));
 		set(&output, "signature", bytes_to_js(signature.as_ref()));
 		outputs.push(&output.into());
 	}
+
 	Ok(outputs.into())
 }
 
@@ -188,12 +199,14 @@ fn sign_wire_transaction(bytes: &[u8]) -> Result<VersionedTransaction, String> {
 			.signatures
 			.resize(index + 1, Signature::default());
 	}
+
 	transaction.signatures[index] = signature;
 	Ok(transaction)
 }
 
 fn sign_transaction_outputs(inputs: &[JsValue]) -> Result<JsValue, String> {
 	let outputs = Array::new();
+
 	for input in inputs {
 		let transaction = Reflect::get(input, &js_str("transaction")).unwrap_or(JsValue::UNDEFINED);
 		let bytes = js_to_bytes(&transaction);
@@ -206,11 +219,13 @@ fn sign_transaction_outputs(inputs: &[JsValue]) -> Result<JsValue, String> {
 		);
 		outputs.push(&output.into());
 	}
+
 	Ok(outputs.into())
 }
 
 fn sign_and_send_outputs(inputs: &[JsValue]) -> Result<JsValue, String> {
 	let outputs = Array::new();
+
 	for input in inputs {
 		let transaction = Reflect::get(input, &js_str("transaction")).unwrap_or(JsValue::UNDEFINED);
 		let bytes = js_to_bytes(&transaction);
@@ -235,6 +250,7 @@ fn sign_and_send_outputs(inputs: &[JsValue]) -> Result<JsValue, String> {
 		set(&output, "signature", bytes_to_js(signature.as_ref()));
 		outputs.push(&output.into());
 	}
+
 	Ok(outputs.into())
 }
 
@@ -317,6 +333,7 @@ pub fn register_dev_wallet(rpc_url: String) -> Result<(), JsValue> {
 			if event == "change" {
 				CHANGE_LISTENER.with(|slot| *slot.borrow_mut() = Some(listener));
 			}
+
 			// Unsubscribe stub; the dev wallet has exactly one listener slot.
 			let off: Closure<dyn FnMut()> = Closure::new(|| {
 				CHANGE_LISTENER.with(|slot| *slot.borrow_mut() = None);

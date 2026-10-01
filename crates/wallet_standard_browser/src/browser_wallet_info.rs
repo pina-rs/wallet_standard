@@ -10,6 +10,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use typed_builder::TypedBuilder;
 use wallet_standard::WalletAccountInfo;
+
 use wallet_standard::WalletError;
 use wallet_standard::WalletInfo;
 use wallet_standard::WalletResult;
@@ -181,7 +182,9 @@ extern "C" {
 	/// apps poll it, which is the whole discovery mechanism of the
 	/// standard on the web.
 	pub type Wallets;
-	/// Get all Wallets that have been registered.
+	/// Get all Wallets that have been registered. This is the one call a
+	/// discovery flow needs: the registry only ever grows during the page's
+	/// lifetime, so one poll is a complete answer.
 	///
 	/// @return Registered Wallets.
 	#[wasm_bindgen(method)]

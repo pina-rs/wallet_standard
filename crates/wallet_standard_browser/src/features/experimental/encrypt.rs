@@ -6,6 +6,7 @@ use typed_builder::TypedBuilder;
 use wallet_standard::EXPERIMENTAL_ENCRYPT;
 use wallet_standard::ExperimentalEncryptOutput;
 use wallet_standard::ExperimentalEncryptProps;
+
 use wallet_standard::WalletError;
 use wallet_standard::WalletExperimentalEncrypt;
 use wallet_standard::WalletResult;
@@ -50,7 +51,8 @@ extern "C" {
 	/// List of ciphers supported for encryption.
 	#[wasm_bindgen(method, getter)]
 	pub fn ciphers(this: &ExperimentalEncryptFeature) -> Vec<String>;
-	/// Encrypt cleartexts using the account's secret key.
+	/// Encrypt cleartexts to the account's public key. The wallet never sees
+	/// the plaintext it returns, which is what makes the feature experimental.
 	///
 	/// @param inputs Inputs for encryption.
 	///

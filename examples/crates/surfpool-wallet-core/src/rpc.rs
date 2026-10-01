@@ -150,11 +150,16 @@ impl SurfpoolClient {
 					return Ok(status);
 				}
 			}
-			sleep_ms(250).await;
+
+			sleep_ms(CONFIRMATION_POLL_INTERVAL_MS.try_into().unwrap()).await;
 		}
+
 		Err(format!("signature {signature} did not confirm in time"))
 	}
 }
+
+/// How long to wait between confirmation polls.
+const CONFIRMATION_POLL_INTERVAL_MS: u64 = 250;
 
 async fn sleep_ms(ms: i32) {
 	let promise = js_sys::Promise::new(&mut |resolve, _| {

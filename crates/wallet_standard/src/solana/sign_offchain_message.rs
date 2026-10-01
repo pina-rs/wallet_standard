@@ -49,11 +49,9 @@ impl<'de> Deserialize<'de> for SolanaOffchainMessageVersion {
 	{
 		match u8::deserialize(deserializer)? {
 			1 => Ok(SolanaOffchainMessageVersion::V1),
-			other => {
-				Err(serde::de::Error::custom(format!(
-					"unknown offchain message version `{other}`"
-				)))
-			}
+			other => Err(serde::de::Error::custom(format!(
+				"unknown offchain message version `{other}`"
+			))),
 		}
 	}
 }
