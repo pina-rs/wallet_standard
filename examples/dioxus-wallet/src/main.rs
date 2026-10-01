@@ -468,7 +468,7 @@ async fn build_unsigned_transfer()
 	let blockhash = blockhash
 		.parse::<Hash>()
 		.map_err(|e| format!("invalid blockhash: {e}"))?;
-	let transaction = tx::build_transfer(&from, &to, AIRDROP_LAMPORTS, &blockhash);
+	let transaction = tx::build_transfer(&from, &to, TRANSFER_LAMPORTS, &blockhash);
 	Ok((wallet, tx::sign_transaction_props(transaction)))
 }
 
@@ -502,8 +502,12 @@ async fn send_transfer_wallet_side() -> Result<String, String> {
 	Ok(format!("{status}: {signature_string}"))
 }
 
-/// The example airdrop: enough lamports to pay for every flow the demo runs.
-const AIRDROP_LAMPORTS: u64 = 10_000_000;
+/// The example airdrop: one SOL, enough to pay for every transfer the demo
+/// runs and the fees between them.
+const AIRDROP_LAMPORTS: u64 = 1_000_000_000;
+
+/// The demo transfer: a hundredth of the airdrop, so one airdrop funds many runs.
+const TRANSFER_LAMPORTS: u64 = 10_000_000;
 
 fn main() {
 	console_error_panic_hook::set_once();

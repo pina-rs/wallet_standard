@@ -419,7 +419,7 @@ async fn build_unsigned_transfer() -> Result<
 	let blockhash = blockhash
 		.parse::<Hash>()
 		.map_err(|error| format!("invalid blockhash: {error}"))?;
-	let transaction = tx::build_transfer(&from, &to, AIRDROP_LAMPORTS, &blockhash);
+	let transaction = tx::build_transfer(&from, &to, TRANSFER_LAMPORTS, &blockhash);
 	Ok((wallet, tx::sign_transaction_props(transaction)))
 }
 
@@ -470,7 +470,11 @@ fn start() {
 
 // The WASM entry point is `#[wasm_bindgen(start)]`; this stub only exists so
 // the bin target stays valid for non-wasm hosts.
-/// The example airdrop: enough lamports to pay for every flow the demo runs.
-const AIRDROP_LAMPORTS: u64 = 10_000_000;
+/// The example airdrop: one SOL, enough to pay for every transfer the demo
+/// runs and the fees between them.
+const AIRDROP_LAMPORTS: u64 = 1_000_000_000;
+
+/// The demo transfer: a hundredth of the airdrop, so one airdrop funds many runs.
+const TRANSFER_LAMPORTS: u64 = 10_000_000;
 
 fn main() {}
