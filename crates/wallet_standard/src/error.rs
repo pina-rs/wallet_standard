@@ -172,6 +172,7 @@ fn js_error_message(value: &wasm_bindgen::JsValue) -> String {
 	if let Some(message) = value.as_string() {
 		return message;
 	}
+
 	if let Ok(message) = js_sys::Reflect::get(value, &wasm_bindgen::JsValue::from_str("message"))
 		&& let Some(message) = message.as_string()
 	{
