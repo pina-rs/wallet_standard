@@ -13,10 +13,15 @@ export const DEV_ADDRESS = "4acVT7jfykgHZNunZYEwg1NNCUnvuXwFH292ebEGnN4g";
  *  5. `solana:signTransaction` + `sendTransaction` (dApp broadcasts),
  *  6. `solana:signAndSendTransaction` (wallet broadcasts).
  */
+// Surfpool needs a moment to mine the airdrops and transfers these flows
+// wait on; the shorter wait covers assertions that only read local state.
+const CONFIRMATION_TIMEOUT_MS = 60_000;
+const LOCAL_STATE_TIMEOUT_MS = 30_000;
+
 export async function runWalletFlow(page: Page) {
 	await expect(page.getByTestId("wallet-status")).toContainText(
 		"detected: Surfpool Dev Wallet",
-		{ timeout: 60_000 },
+		{ timeout: CONFIRMATION_TIMEOUT_MS },
 	);
 
 	await page.getByTestId("connect").click();
@@ -24,25 +29,27 @@ export async function runWalletFlow(page: Page) {
 
 	await page.getByTestId("airdrop").click();
 	await expect(page.getByTestId("airdrop-status")).toContainText("confirmed", {
-		timeout: 60_000,
+		timeout: CONFIRMATION_TIMEOUT_MS,
 	});
 	await expect(page.getByTestId("balance-value")).toContainText(/\d+ lamports/);
 
 	await page.getByTestId("sign-message").click();
 	const signStatus = page.getByTestId("sign-message-status");
-	await expect(signStatus).toContainText("signature", { timeout: 30_000 });
+	await expect(signStatus).toContainText("signature", {
+		timeout: LOCAL_STATE_TIMEOUT_MS,
+	});
 	await expect(signStatus).toContainText("VALID");
 
 	await page.getByTestId("send-app").click();
 	await expect(page.getByTestId("send-app-status")).toContainText("confirmed", {
-		timeout: 60_000,
+		timeout: CONFIRMATION_TIMEOUT_MS,
 	});
 
 	await page.getByTestId("send-wallet").click();
 	await expect(page.getByTestId("send-wallet-status")).toContainText(
 		"confirmed",
 		{
-			timeout: 60_000,
+			timeout: CONFIRMATION_TIMEOUT_MS,
 		},
 	);
 }
@@ -51,7 +58,7 @@ export async function runWalletFlow(page: Page) {
 export async function runDisconnectFlow(page: Page) {
 	await expect(page.getByTestId("wallet-status")).toContainText(
 		"detected: Surfpool Dev Wallet",
-		{ timeout: 60_000 },
+		{ timeout: CONFIRMATION_TIMEOUT_MS },
 	);
 	await page.getByTestId("connect").click();
 	await expect(page.getByTestId("account-address")).toHaveText(DEV_ADDRESS);

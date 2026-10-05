@@ -50,7 +50,8 @@ extern "C" {
 	/// List of ciphers supported for encryption.
 	#[wasm_bindgen(method, getter)]
 	pub fn ciphers(this: &ExperimentalEncryptFeature) -> Vec<String>;
-	/// Encrypt cleartexts using the account's secret key.
+	/// Encrypt cleartexts to the account's public key. The wallet never sees
+	/// the plaintext it returns, which is what makes the feature experimental.
 	///
 	/// @param inputs Inputs for encryption.
 	///
