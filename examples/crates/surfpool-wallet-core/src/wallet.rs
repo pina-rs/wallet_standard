@@ -159,7 +159,6 @@ fn sign_message_outputs(inputs: &[JsValue]) -> Result<JsValue, String> {
 
 		let signature = KEYPAIR.with(|keypair| keypair.sign_message(&message));
 		let output = Object::new();
-
 		set(&output, "signedMessage", bytes_to_js(&message));
 		set(&output, "signature", bytes_to_js(signature.as_ref()));
 		outputs.push(&output.into());
