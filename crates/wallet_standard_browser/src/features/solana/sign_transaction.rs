@@ -70,8 +70,9 @@ impl SolanaSignTransactionOutput for BrowserSolanaSignTransactionOutput {
 		if let Ok(value) = bincode::deserialize(&bytes) {
 			Ok(value)
 		} else {
-			// check if the wallet returns a legacy transaction and convert to a
-			// versioned transaction.
+			// A wallet built before versioned transactions signs the
+			// unversioned format; accept it so those wallets keep
+			// working.
 			let transaction: Transaction = bincode::deserialize::<Transaction>(&bytes)
 				.map_err(|_| WalletError::WalletSignTransaction)?;
 

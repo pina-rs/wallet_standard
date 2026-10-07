@@ -58,6 +58,7 @@ async fn refresh_balance(balance: &mut Signal<Option<u64>>) {
 	let Some(address) = connected_address() else {
 		return;
 	};
+
 	match client().get_balance(&address).await {
 		Ok(lamports) => balance.set(Some(lamports)),
 		Err(error) => web_sys::console::warn_1(&format!("getBalance failed: {error}").into()),
@@ -88,6 +89,179 @@ fn boot_once() -> Option<String> {
 	result
 }
 
+/// Connect through the standard, then show the account and its balance.
+async fn connect_flow(
+	mut account_address: Signal<String>,
+	mut balance: Signal<Option<u64>>,
+	mut log: Signal<Vec<String>>,
+	mut busy: Signal<bool>,
+) {
+	let result = async {
+		let mut wallet = SESSION
+			.with(|session| session.borrow().clone())
+			.ok_or_else(|| "no wallet available".to_string())?;
+		let account = dev_wallet::connect_dev_wallet(&mut wallet)
+			.await
+			.map_err(|error| error.to_string())?;
+		SESSION.with(|session| *session.borrow_mut() = Some(wallet));
+		Ok::<_, String>(account)
+	}
+	.await;
+
+	match result {
+		Ok(account) => {
+			account_address.set(account.address());
+			append_log(&mut log, format!("connected to {}", account.address()));
+			refresh_balance(&mut balance).await;
+		}
+		Err(error) => append_log(&mut log, format!("connect failed: {error}")),
+	}
+
+	busy.set(false);
+}
+
+/// Disconnect and clear everything the connection showed.
+async fn disconnect_flow(
+	mut account_address: Signal<String>,
+	mut balance: Signal<Option<u64>>,
+	mut log: Signal<Vec<String>>,
+	mut busy: Signal<bool>,
+) {
+	let result = async {
+		let mut wallet = SESSION
+			.with(|session| session.borrow().clone())
+			.ok_or_else(|| "no wallet available".to_string())?;
+		wallet_standard::WalletStandardDisconnect::disconnect(&mut wallet)
+			.await
+			.map_err(|error| error.to_string())?;
+		SESSION.with(|session| *session.borrow_mut() = Some(wallet));
+		Ok::<_, String>(())
+	}
+	.await;
+
+	match result {
+		Ok(()) => {
+			account_address.set(String::new());
+			balance.set(None);
+			append_log(&mut log, "disconnected");
+		}
+		Err(error) => append_log(&mut log, format!("disconnect failed: {error}")),
+	}
+
+	busy.set(false);
+}
+
+/// Ask the RPC node for the connected account's balance.
+async fn balance_flow(mut balance: Signal<Option<u64>>, mut log: Signal<Vec<String>>) {
+	match connected_address() {
+		Some(address) => {
+			match client().get_balance(&address).await {
+				Ok(lamports) => {
+					balance.set(Some(lamports));
+					append_log(&mut log, format!("balance: {lamports} lamports"));
+				}
+				Err(error) => append_log(&mut log, format!("balance failed: {error}")),
+			}
+		}
+
+		None => append_log(&mut log, "connect a wallet first"),
+	}
+}
+
+/// Airdrop one SOL to the connected account and wait for confirmation.
+async fn airdrop_flow(
+	mut balance: Signal<Option<u64>>,
+	mut status: Signal<String>,
+	mut log: Signal<Vec<String>>,
+	mut busy: Signal<bool>,
+) {
+	let Some(address) = connected_address() else {
+		status.set("connect a wallet first".to_string());
+		busy.set(false);
+
+		return;
+	};
+
+	status.set("requesting airdrop…".to_string());
+
+	match client().request_airdrop(&address, AIRDROP_LAMPORTS).await {
+		Ok(signature) => {
+			let confirmed = client().confirm_signature(&signature).await;
+			status.set(match confirmed {
+				Ok(state) => format!("airdrop confirmed ({state})"),
+				Err(error) => format!("airdrop sent, confirmation failed: {error}"),
+			});
+
+			append_log(&mut log, format!("airdrop signature: {signature}"));
+		}
+		Err(error) => {
+			status.set(format!("airdrop failed: {error}"));
+			append_log(&mut log, format!("airdrop failed: {error}"));
+		}
+	}
+
+	refresh_balance(&mut balance).await;
+	busy.set(false);
+}
+
+/// Sign the demo message with the wallet and verify it locally.
+async fn sign_message_flow(mut status: Signal<String>, mut busy: Signal<bool>) {
+	let message = b"hello surfpool, from dioxus + wallet_standard".to_vec();
+
+	let result = async {
+		let wallet = SESSION
+			.with(|session| session.borrow().clone())
+			.ok_or_else(|| "no wallet available".to_string())?;
+		dev_wallet::sign_and_verify_message(&wallet, &message)
+			.await
+			.map(|(signature, verified)| (signature.to_string(), verified))
+			.map_err(|error| error.to_string())
+	}
+	.await;
+
+	match result {
+		Ok((signature, verified)) => {
+			status.set(format!(
+				"signature {signature} — local ed25519 verification: {}",
+				if verified { "VALID" } else { "INVALID" }
+			));
+		}
+		Err(error) => status.set(format!("sign message failed: {error}")),
+	}
+
+	busy.set(false);
+}
+
+/// Sign and send the demo transfer with the dApp broadcasting it.
+async fn send_flow(
+	mut balance: Signal<Option<u64>>,
+	mut status: Signal<String>,
+	mut busy: Signal<bool>,
+) {
+	match send_transfer_app_side().await {
+		Ok(signature) => status.set(format!("sent and confirmed: {signature}")),
+		Err(error) => status.set(format!("send failed: {error}")),
+	}
+
+	refresh_balance(&mut balance).await;
+	busy.set(false);
+}
+
+/// Sign and send the demo transfer with the wallet broadcasting it.
+async fn wallet_send_flow(
+	mut balance: Signal<Option<u64>>,
+	mut status: Signal<String>,
+	mut busy: Signal<bool>,
+) {
+	match send_transfer_wallet_side().await {
+		Ok(signature) => status.set(format!("wallet broadcast: {signature}")),
+		Err(error) => status.set(format!("signAndSend failed: {error}")),
+	}
+
+	refresh_balance(&mut balance).await;
+	busy.set(false);
+}
+
 #[component]
 fn App() -> Element {
 	console_error_panic_hook::set_once();
@@ -107,185 +281,67 @@ fn App() -> Element {
 		wallet_status.set(status);
 		append_log(&mut log, "dev wallet registered and discovered");
 	}
+
 	let rpc_url = rpc::rpc_url_from_location();
 
-	// -- connect ------------------------------------------------------------
-	let connect = move |_| {
+	// Each button spawns its flow; the flows own their busy-clearing so a
+	// handler can never leave the UI stuck.
+	let connect = move |_: Event<MouseData>| {
 		if busy() {
 			return;
 		}
+
 		busy.set(true);
-		spawn_local(async move {
-			let result = async {
-				let mut wallet = SESSION
-					.with(|session| session.borrow().clone())
-					.ok_or_else(|| "no wallet available".to_string())?;
-				let account = dev_wallet::connect_dev_wallet(&mut wallet)
-					.await
-					.map_err(|error| error.to_string())?;
-				SESSION.with(|session| *session.borrow_mut() = Some(wallet));
-				Ok::<_, String>(account)
-			}
-			.await;
-			match result {
-				Ok(account) => {
-					account_address.set(account.address());
-					let mut log = log;
-					append_log(&mut log, format!("connected to {}", account.address()));
-					let mut balance = balance;
-					refresh_balance(&mut balance).await;
-				}
-				Err(error) => append_log(&mut log, format!("connect failed: {error}")),
-			}
-			busy.set(false);
-		});
+		spawn_local(connect_flow(account_address, balance, log, busy));
 	};
 
-	// -- disconnect ---------------------------------------------------------
-	let disconnect = move |_| {
+	let disconnect = move |_: Event<MouseData>| {
 		if busy() {
 			return;
 		}
+
 		busy.set(true);
-		spawn_local(async move {
-			let result = async {
-				let mut wallet = SESSION
-					.with(|session| session.borrow().clone())
-					.ok_or_else(|| "no wallet available".to_string())?;
-				wallet_standard::WalletStandardDisconnect::disconnect(&mut wallet)
-					.await
-					.map_err(|error| error.to_string())?;
-				SESSION.with(|session| *session.borrow_mut() = Some(wallet));
-				Ok::<_, String>(())
-			}
-			.await;
-			match result {
-				Ok(()) => {
-					account_address.set(String::new());
-					balance.set(None);
-					let mut log = log;
-					append_log(&mut log, "disconnected");
-				}
-				Err(error) => append_log(&mut log, format!("disconnect failed: {error}")),
-			}
-			busy.set(false);
-		});
+		spawn_local(disconnect_flow(account_address, balance, log, busy));
 	};
 
-	// -- balance ------------------------------------------------------------
-	let refresh = move |_| {
-		spawn_local(async move {
-			match connected_address() {
-				Some(address) => {
-					match client().get_balance(&address).await {
-						Ok(lamports) => {
-							balance.set(Some(lamports));
-							let mut log = log;
-							append_log(&mut log, format!("balance: {lamports} lamports"));
-						}
-						Err(error) => append_log(&mut log, format!("balance failed: {error}")),
-					}
-				}
-				None => append_log(&mut log, "connect a wallet first"),
-			}
-		});
+	let refresh = move |_: Event<MouseData>| {
+		spawn_local(balance_flow(balance, log));
 	};
 
-	// -- airdrop ------------------------------------------------------------
-	let airdrop = move |_| {
+	let airdrop = move |_: Event<MouseData>| {
 		if busy() {
 			return;
 		}
+
 		busy.set(true);
-		spawn_local(async move {
-			let Some(address) = connected_address() else {
-				airdrop_status.set("connect a wallet first".to_string());
-				busy.set(false);
-				return;
-			};
-			airdrop_status.set("requesting airdrop…".to_string());
-			match client().request_airdrop(&address, 1_000_000_000).await {
-				Ok(signature) => {
-					let confirmed = client().confirm_signature(&signature).await;
-					airdrop_status.set(match confirmed {
-						Ok(status) => format!("airdrop confirmed ({status})"),
-						Err(error) => format!("airdrop sent, confirmation failed: {error}"),
-					});
-					let mut log = log;
-					append_log(&mut log, format!("airdrop signature: {signature}"));
-				}
-				Err(error) => {
-					airdrop_status.set(format!("airdrop failed: {error}"));
-					let mut log = log;
-					append_log(&mut log, format!("airdrop failed: {error}"));
-				}
-			}
-			refresh_balance(&mut balance).await;
-			busy.set(false);
-		});
+		spawn_local(airdrop_flow(balance, airdrop_status, log, busy));
 	};
 
-	// -- sign message -------------------------------------------------------
-	let sign_message = move |_| {
+	let sign_message = move |_: Event<MouseData>| {
 		if busy() {
 			return;
 		}
+
 		busy.set(true);
-		spawn_local(async move {
-			let message = b"hello surfpool, from dioxus + wallet_standard".to_vec();
-			let result = async {
-				let wallet = SESSION
-					.with(|session| session.borrow().clone())
-					.ok_or_else(|| "no wallet available".to_string())?;
-				dev_wallet::sign_and_verify_message(&wallet, &message)
-					.await
-					.map(|(signature, verified)| (signature.to_string(), verified))
-					.map_err(|error| error.to_string())
-			}
-			.await;
-			match result {
-				Ok((signature, verified)) => {
-					sign_message_status.set(format!(
-						"signature {signature} — local ed25519 verification: {}",
-						if verified { "VALID" } else { "INVALID" }
-					));
-				}
-				Err(error) => sign_message_status.set(format!("sign message failed: {error}")),
-			}
-			busy.set(false);
-		});
+		spawn_local(sign_message_flow(sign_message_status, busy));
 	};
 
-	// -- sign + send (dApp owns broadcasting) -------------------------------
-	let send_app = move |_| {
+	let send_app = move |_: Event<MouseData>| {
 		if busy() {
 			return;
 		}
+
 		busy.set(true);
-		spawn_local(async move {
-			match send_transfer_app_side().await {
-				Ok(signature) => send_status.set(format!("sent and confirmed: {signature}")),
-				Err(error) => send_status.set(format!("send failed: {error}")),
-			}
-			refresh_balance(&mut balance).await;
-			busy.set(false);
-		});
+		spawn_local(send_flow(balance, send_status, busy));
 	};
 
-	// -- sign & send (wallet owns broadcasting) -----------------------------
-	let send_wallet = move |_| {
+	let send_wallet = move |_: Event<MouseData>| {
 		if busy() {
 			return;
 		}
+
 		busy.set(true);
-		spawn_local(async move {
-			match send_transfer_wallet_side().await {
-				Ok(signature) => wallet_send_status.set(format!("wallet broadcast: {signature}")),
-				Err(error) => wallet_send_status.set(format!("signAndSend failed: {error}")),
-			}
-			refresh_balance(&mut balance).await;
-			busy.set(false);
-		});
+		spawn_local(wallet_send_flow(balance, wallet_send_status, busy));
 	};
 
 	rsx! {
@@ -377,6 +433,7 @@ fn App() -> Element {
 		section {
 			h2 { "Activity" }
 			div { "data-testid": "log", class: "value", style: "min-height:2rem",
+
 				for entry in log.iter() {
 					div { "{entry}" }
 				}
@@ -411,7 +468,7 @@ async fn build_unsigned_transfer()
 	let blockhash = blockhash
 		.parse::<Hash>()
 		.map_err(|e| format!("invalid blockhash: {e}"))?;
-	let transaction = tx::build_transfer(&from, &to, 10_000_000, &blockhash);
+	let transaction = tx::build_transfer(&from, &to, TRANSFER_LAMPORTS, &blockhash);
 	Ok((wallet, tx::sign_transaction_props(transaction)))
 }
 
@@ -444,6 +501,13 @@ async fn send_transfer_wallet_side() -> Result<String, String> {
 	let status = client().confirm_signature(&signature_string).await?;
 	Ok(format!("{status}: {signature_string}"))
 }
+
+/// The example airdrop: one SOL, enough to pay for every transfer the demo
+/// runs and the fees between them.
+const AIRDROP_LAMPORTS: u64 = 1_000_000_000;
+
+/// The demo transfer: a hundredth of the airdrop, so one airdrop funds many runs.
+const TRANSFER_LAMPORTS: u64 = 10_000_000;
 
 fn main() {
 	console_error_panic_hook::set_once();

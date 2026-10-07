@@ -83,10 +83,12 @@ impl SolanaSignAndSendAllTransactionsFeature {
 		}
 
 		let supported_transaction_versions = self.supported_transaction_versions()?;
+
 		for input in &inputs {
 			let transaction: solana_transaction::versioned::VersionedTransaction =
 				bincode::deserialize(&input.transaction)
 					.map_err(|_| WalletError::WalletSignTransaction)?;
+
 			if !supported_transaction_versions.contains(&transaction.version()) {
 				return Err(WalletError::UnsupportedTransactionVersion);
 			}

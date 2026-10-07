@@ -14,6 +14,12 @@
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 
+// How long to wait for surfpool to answer, and how often to ask.
+const HEALTH_TIMEOUT_MS = 60_000;
+const POLL_INTERVAL_MS = 300;
+const HTTP_OK = 200;
+const HTTP_NOT_FOUND = 404;
+
 const RPC_PORT = Number(process.env.SURFPOOL_RPC_PORT ?? 8899);
 const WS_PORT = Number(process.env.SURFPOOL_WS_PORT ?? 8900);
 const HEALTH_PORT = Number(process.env.SURFPOOL_HEALTH_PORT ?? 8898);
@@ -27,26 +33,30 @@ async function jsonRpc(method) {
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ jsonrpc: "2.0", id: 1, method }),
 	});
+
 	return response.json();
 }
 
 async function healthy() {
 	try {
 		const body = await jsonRpc("getVersion");
+
 		return body?.result !== undefined;
 	} catch {
 		return false;
 	}
 }
 
-async function waitForHealth(timeoutMs = 60_000) {
+async function waitForHealth(timeoutMs = HEALTH_TIMEOUT_MS) {
 	const deadline = Date.now() + timeoutMs;
+
 	while (Date.now() < deadline) {
 		// eslint-disable-next-line no-await-in-loop
 		if (await healthy()) return true;
 		// eslint-disable-next-line no-await-in-loop
-		await new Promise((resolve) => setTimeout(resolve, 300));
+		await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
 	}
+
 	return false;
 }
 
@@ -55,6 +65,7 @@ function shutdown() {
 		surfpool.kill("SIGTERM");
 		surfpool = null;
 	}
+
 	process.exit(0);
 }
 
@@ -92,11 +103,12 @@ if (!(await waitForHealth())) {
 
 createServer((request, response) => {
 	if (request.url === "/health") {
-		response.writeHead(200, { "Content-Type": "application/json" });
+		response.writeHead(HTTP_OK, { "Content-Type": "application/json" });
 		response.end(JSON.stringify({ ok: true, rpc: RPC_URL }));
 		return;
 	}
-	response.writeHead(404);
+
+	response.writeHead(HTTP_NOT_FOUND);
 	response.end();
 }).listen(HEALTH_PORT, "127.0.0.1", () => {
 	console.log(`[surfpool-server] health endpoint ready on :${HEALTH_PORT}`);
