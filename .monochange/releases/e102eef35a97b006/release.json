@@ -1,0 +1,602 @@
+{
+	"schema_version": "0.8",
+	"kind": "monochange.releaseRecord",
+	"created_at": "2026-09-29T06:04:54Z",
+	"command": "release",
+	"version": "0.7.1",
+	"versions": {
+		"core": "0.7.1"
+	},
+	"release_targets": [
+		{
+			"id": "core",
+			"kind": "group",
+			"version": "0.7.1",
+			"version_format": "primary",
+			"tag": true,
+			"release": true,
+			"tag_name": "v0.7.1",
+			"members": [
+				"wallet_standard",
+				"wallet_standard_browser"
+			]
+		}
+	],
+	"released_packages": [
+		"wallet_standard",
+		"wallet_standard_browser"
+	],
+	"changed_files": [
+		"Cargo.lock",
+		"Cargo.toml",
+		"changelog.md",
+		"crates/wallet_standard/Cargo.toml",
+		"crates/wallet_standard_browser/Cargo.toml"
+	],
+	"package_publications": [
+		{
+			"package": "wallet_standard",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "wallet_standard_browser",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.1",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		}
+	],
+	"updated_changelogs": [
+		"changelog.md"
+	],
+	"deleted_changesets": [
+		".changeset/enforce-missing-docs.md",
+		".changeset/implement-spec-1.5.0.md",
+		".changeset/single-source-docs-with-mdt.md",
+		".changeset/sync-docs-during-release.md"
+	],
+	"changesets": [
+		{
+			"path": ".changeset/enforce-missing-docs.md",
+			"summary": "Enforce and write missing API documentation",
+			"details": "`missing_docs = \"deny\"` is now a workspace lint, and every public item that lacked documentation is documented — with the reasoning behind the item, not a restatement of its signature: when the error occurs, why the feature exists, and what an app should do with it.",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "docs"
+				},
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "docs"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "220da90229883d81bd7370a1f2c4c3ab10e442f2",
+						"short_sha": "220da90",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/220da90229883d81bd7370a1f2c4c3ab10e442f2",
+						"authored_at": "2026-09-28T20:17:19+01:00",
+						"committed_at": "2026-09-28T20:17:19+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#57",
+						"title": "docs: enforce and write missing API documentation",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/57",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "cc0e9eefc3184612e6193533e3bc6df04ccecb2b",
+						"short_sha": "cc0e9ee",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/cc0e9eefc3184612e6193533e3bc6df04ccecb2b",
+						"authored_at": "2026-09-28T20:46:27+01:00",
+						"committed_at": "2026-09-28T20:46:27+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#58",
+						"title": "docs: single-source documentation across readmes, book, and rustdoc",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/58",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		},
+		{
+			"path": ".changeset/implement-spec-1.5.0.md",
+			"summary": "Implement Wallet Standard features 1.5.0",
+			"details": "Catch up to `@solana/wallet-standard-features@1.5.0`:\n\n- `solana:signAndSendAllTransactions` (spec 1.3.0): sign and send a whole batch in one wallet prompt, with each transaction settling independently — a refused transaction arrives as a `WalletSettled::Rejected` element instead of failing the batch, so partial success is a first-class result.\n- `solana:signOffchainMessage` (spec 1.4.0, SRFC-3): the wallet wraps the app's UTF-8 message in the canonical preamble (domain, version, sorted signers) and signs it, returning the exact preamble bytes so verifiers need no wallet SDK.\n\nBoth ship as core traits plus browser bridges with flat wire-format inputs (`Uint8Array` signer keys, numeric `messageVersion`), and are covered by the headless-Chrome boundary suite: the settled-batch parsing is driven end to end against a mock JS wallet, and the offchain input shape is pinned against the spec.",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "minor",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "feat"
+				},
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "minor",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "feat"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "f8ad3ffb96c2868c4dc0a4c861773835391245ac",
+						"short_sha": "f8ad3ff",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/f8ad3ffb96c2868c4dc0a4c861773835391245ac",
+						"authored_at": "2026-09-28T22:16:50+01:00",
+						"committed_at": "2026-09-28T22:16:50+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#59",
+						"title": "feat: implement Wallet Standard features 1.5.0",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/59",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "f8ad3ffb96c2868c4dc0a4c861773835391245ac",
+						"short_sha": "f8ad3ff",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/f8ad3ffb96c2868c4dc0a4c861773835391245ac",
+						"authored_at": "2026-09-28T22:16:50+01:00",
+						"committed_at": "2026-09-28T22:16:50+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#59",
+						"title": "feat: implement Wallet Standard features 1.5.0",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/59",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": [
+					{
+						"provider": "github",
+						"host": "github.com",
+						"id": "#55",
+						"title": null,
+						"url": "https://github.com/pina-rs/wallet_standard/issues/55",
+						"relationship": "referenced_by_review_request"
+					}
+				]
+			}
+		},
+		{
+			"path": ".changeset/single-source-docs-with-mdt.md",
+			"summary": "Single-source the documentation with mdt",
+			"details": "Shared documentation now lives once in `.templates/docs.t.md` and is consumed wherever it is rendered: both crate readmes, the mdBook pages, the root readme, and rustdoc comments (`mdt update` syncs, `mdt check` fails CI on drift, both wired into `lint:all`). Dependency snippets now interpolate the workspace version, ending the readme/docs version drift (`0.5`/`0.5.1` → current), and the docs book's drifted API examples were replaced with the canonical, compiled-against implementations.",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "docs"
+				},
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "docs"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "cc0e9eefc3184612e6193533e3bc6df04ccecb2b",
+						"short_sha": "cc0e9ee",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/cc0e9eefc3184612e6193533e3bc6df04ccecb2b",
+						"authored_at": "2026-09-28T20:46:27+01:00",
+						"committed_at": "2026-09-28T20:46:27+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#58",
+						"title": "docs: single-source documentation across readmes, book, and rustdoc",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/58",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "cc0e9eefc3184612e6193533e3bc6df04ccecb2b",
+						"short_sha": "cc0e9ee",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/cc0e9eefc3184612e6193533e3bc6df04ccecb2b",
+						"authored_at": "2026-09-28T20:46:27+01:00",
+						"committed_at": "2026-09-28T20:46:27+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#58",
+						"title": "docs: single-source documentation across readmes, book, and rustdoc",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/58",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		},
+		{
+			"path": ".changeset/sync-docs-during-release.md",
+			"summary": "Sync single-sourced docs during the release commit",
+			"details": "The release commit rewrites `[workspace.package.version]`, and the `install_deps` provider interpolates that version into both crate readmes and the getting-started page. Nothing re-synced those copies, so the release commit invalidated its own consumers and `lint:docs` failed the release pull request with three stale blocks — after the version bump had already been committed.\n\nThe `monochange` release flow now runs `fix:docs` (`mdt update`) between `PrepareRelease` and the format step, so the release commit carries the version bump and every generated copy of it together. Keeping them in one commit matters: a follow-up commit would leave the release tag pointing at a revision whose readmes still advertised the previous version.\n\n`mdt` also moves from a `curl`-installed tarball in CI to the devenv profile, matching how `monochange` is provisioned. CI and the release flow now run the same pinned tool, so a consumer block can never be generated by one version and checked by another.",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "none"
+				},
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "none"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "ab6b967cc56b72f922f97909ec442ff7cd3923f1",
+						"short_sha": "ab6b967",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/ab6b967cc56b72f922f97909ec442ff7cd3923f1",
+						"authored_at": "2026-09-29T06:57:39+01:00",
+						"committed_at": "2026-09-29T06:57:39+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#62",
+						"title": "fix(ci): sync single-sourced docs during the release commit",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/62",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "ab6b967cc56b72f922f97909ec442ff7cd3923f1",
+						"short_sha": "ab6b967",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/ab6b967cc56b72f922f97909ec442ff7cd3923f1",
+						"authored_at": "2026-09-29T06:57:39+01:00",
+						"committed_at": "2026-09-29T06:57:39+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#62",
+						"title": "fix(ci): sync single-sourced docs during the release commit",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/62",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": [
+					{
+						"provider": "github",
+						"host": "github.com",
+						"id": "#56",
+						"title": null,
+						"url": "https://github.com/pina-rs/wallet_standard/issues/56",
+						"relationship": "referenced_by_review_request"
+					},
+					{
+						"provider": "github",
+						"host": "github.com",
+						"id": "#61",
+						"title": null,
+						"url": "https://github.com/pina-rs/wallet_standard/issues/61",
+						"relationship": "referenced_by_review_request"
+					}
+				]
+			}
+		}
+	],
+	"changelogs": [
+		{
+			"owner_id": "core",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "[0.7.1](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.1) (2026-09-29)",
+				"summary": [
+					"Grouped release for `core`."
+				],
+				"sections": [
+					{
+						"title": "Features",
+						"collapsed": false,
+						"entries": [
+							"#### Implement Wallet Standard features 1.5.0\n\n_Packages:_ 🟠 _wallet_standard_, 🟠 _wallet_standard_browser_\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #59](https://github.com/pina-rs/wallet_standard/pull/59) · _Related issues:_ [#55](https://github.com/pina-rs/wallet_standard/issues/55)\n\nCatch up to `@solana/wallet-standard-features@1.5.0`:\n\n- `solana:signAndSendAllTransactions` (spec 1.3.0): sign and send a whole batch in one wallet prompt, with each transaction settling independently — a refused transaction arrives as a `WalletSettled::Rejected` element instead of failing the batch, so partial success is a first-class result.\n- `solana:signOffchainMessage` (spec 1.4.0, SRFC-3): the wallet wraps the app's UTF-8 message in the canonical preamble (domain, version, sorted signers) and signs it, returning the exact preamble bytes so verifiers need no wallet SDK.\n\nBoth ship as core traits plus browser bridges with flat wire-format inputs (`Uint8Array` signer keys, numeric `messageVersion`), and are covered by the headless-Chrome boundary suite: the settled-batch parsing is driven end to end against a mock JS wallet, and the offchain input shape is pinned against the spec."
+						]
+					},
+					{
+						"title": "Documentation",
+						"collapsed": false,
+						"entries": [
+							"- **Enforce and write missing API documentation.** `missing_docs = \"deny\"` is now a workspace lint, and every public item that lacked documentation is documented — with the reasoning behind the item, not a restatement of its signature: when the error occurs, why the feature exists, and what an app should do with it.\n  _Packages:_ ⚪ _wallet_standard_, ⚪ _wallet_standard_browser_\n  _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #57](https://github.com/pina-rs/wallet_standard/pull/57)",
+							"- **Single-source the documentation with mdt.** Shared documentation now lives once in `.templates/docs.t.md` and is consumed wherever it is rendered: both crate readmes, the mdBook pages, the root readme, and rustdoc comments (`mdt update` syncs, `mdt check` fails CI on drift, both wired into `lint:all`). Dependency snippets now interpolate the workspace version, ending the readme/docs version drift (`0.5`/`0.5.1` → current), and the docs book's drifted API examples were replaced with the canonical, compiled-against implementations.\n  _Packages:_ ⚪ _wallet_standard_, ⚪ _wallet_standard_browser_\n  _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #58](https://github.com/pina-rs/wallet_standard/pull/58)"
+						]
+					},
+					{
+						"title": "Notes",
+						"collapsed": false,
+						"entries": [
+							"#### Sync single-sourced docs during the release commit\n\n_Packages:_ ⚪ _wallet_standard_, ⚪ _wallet_standard_browser_\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #62](https://github.com/pina-rs/wallet_standard/pull/62) · _Related issues:_ [#56](https://github.com/pina-rs/wallet_standard/issues/56), [#61](https://github.com/pina-rs/wallet_standard/issues/61)\n\nThe release commit rewrites `[workspace.package.version]`, and the `install_deps` provider interpolates that version into both crate readmes and the getting-started page. Nothing re-synced those copies, so the release commit invalidated its own consumers and `lint:docs` failed the release pull request with three stale blocks — after the version bump had already been committed.\n\nThe `monochange` release flow now runs `fix:docs` (`mdt update`) between `PrepareRelease` and the format step, so the release commit carries the version bump and every generated copy of it together. Keeping them in one commit matters: a follow-up commit would leave the release tag pointing at a revision whose readmes still advertised the previous version.\n\n`mdt` also moves from a `curl`-installed tarball in CI to the devenv profile, matching how `monochange` is provisioned. CI and the release flow now run the same pinned tool, so a consumer block can never be generated by one version and checked by another."
+						]
+					}
+				]
+			},
+			"rendered": "## [0.7.1](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.1) (2026-09-29)\n\nGrouped release for `core`.\n\n### Features\n\n#### Implement Wallet Standard features 1.5.0\n\n_Packages:_ 🟠 _wallet_standard_, 🟠 _wallet_standard_browser_\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #59](https://github.com/pina-rs/wallet_standard/pull/59) · _Related issues:_ [#55](https://github.com/pina-rs/wallet_standard/issues/55)\n\nCatch up to `@solana/wallet-standard-features@1.5.0`:\n\n- `solana:signAndSendAllTransactions` (spec 1.3.0): sign and send a whole batch in one wallet prompt, with each transaction settling independently — a refused transaction arrives as a `WalletSettled::Rejected` element instead of failing the batch, so partial success is a first-class result.\n- `solana:signOffchainMessage` (spec 1.4.0, SRFC-3): the wallet wraps the app's UTF-8 message in the canonical preamble (domain, version, sorted signers) and signs it, returning the exact preamble bytes so verifiers need no wallet SDK.\n\nBoth ship as core traits plus browser bridges with flat wire-format inputs (`Uint8Array` signer keys, numeric `messageVersion`), and are covered by the headless-Chrome boundary suite: the settled-batch parsing is driven end to end against a mock JS wallet, and the offchain input shape is pinned against the spec.\n\n### Documentation\n\n- **Enforce and write missing API documentation.** `missing_docs = \"deny\"` is now a workspace lint, and every public item that lacked documentation is documented — with the reasoning behind the item, not a restatement of its signature: when the error occurs, why the feature exists, and what an app should do with it.\n  _Packages:_ ⚪ _wallet_standard_, ⚪ _wallet_standard_browser_\n  _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #57](https://github.com/pina-rs/wallet_standard/pull/57)\n- **Single-source the documentation with mdt.** Shared documentation now lives once in `.templates/docs.t.md` and is consumed wherever it is rendered: both crate readmes, the mdBook pages, the root readme, and rustdoc comments (`mdt update` syncs, `mdt check` fails CI on drift, both wired into `lint:all`). Dependency snippets now interpolate the workspace version, ending the readme/docs version drift (`0.5`/`0.5.1` → current), and the docs book's drifted API examples were replaced with the canonical, compiled-against implementations.\n  _Packages:_ ⚪ _wallet_standard_, ⚪ _wallet_standard_browser_\n  _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #58](https://github.com/pina-rs/wallet_standard/pull/58)\n\n### Notes\n\n#### Sync single-sourced docs during the release commit\n\n_Packages:_ ⚪ _wallet_standard_, ⚪ _wallet_standard_browser_\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #62](https://github.com/pina-rs/wallet_standard/pull/62) · _Related issues:_ [#56](https://github.com/pina-rs/wallet_standard/issues/56), [#61](https://github.com/pina-rs/wallet_standard/issues/61)\n\nThe release commit rewrites `[workspace.package.version]`, and the `install_deps` provider interpolates that version into both crate readmes and the getting-started page. Nothing re-synced those copies, so the release commit invalidated its own consumers and `lint:docs` failed the release pull request with three stale blocks — after the version bump had already been committed.\n\nThe `monochange` release flow now runs `fix:docs` (`mdt update`) between `PrepareRelease` and the format step, so the release commit carries the version bump and every generated copy of it together. Keeping them in one commit matters: a follow-up commit would leave the release tag pointing at a revision whose readmes still advertised the previous version.\n\n`mdt` also moves from a `curl`-installed tarball in CI to the devenv profile, matching how `monochange` is provisioned. CI and the release flow now run the same pinned tool, so a consumer block can never be generated by one version and checked by another."
+		}
+	],
+	"provider": {
+		"kind": "github",
+		"owner": "pina-rs",
+		"repo": "wallet_standard",
+		"host": null
+	}
+}

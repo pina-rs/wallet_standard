@@ -3,7 +3,7 @@ members = ["crates/wallet_standard", "crates/wallet_standard_browser"]
 resolver = "2"
 
 [workspace.package]
-version = "0.6.0"
+version = "0.7.1"
 authors = ["Ifiok Jr. <ifiokotung@gmail.com>"]
 edition = "2024"
 homepage = "https://github.com/pina-rs/wallet_standard"
@@ -40,8 +40,8 @@ wasm-bindgen-test = { default-features = false, version = "^0.3" }
 web-sys = { default-features = false, version = "^0.3" }
 
 # publishable crates (versions unified through `workspace.package.version`)
-wallet_standard = { path = "./crates/wallet_standard", version = "0.6.0" }
-wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.6.0" }
+wallet_standard = { path = "./crates/wallet_standard", version = "0.7.1" }
+wallet_standard_browser = { path = "./crates/wallet_standard_browser", version = "0.7.1" }
 
 [workspace.metadata.bin]
 cargo-dylint = { version = "6.0.4" }
@@ -50,6 +50,7 @@ cargo-nextest = { version = "0.9.143" }
 cargo-semver-checks = { version = "0.50.0" }
 dylint-link = { version = "6.0.4", bins = ["dylint-link"] }
 wasm-bindgen-cli = { version = "0.2.128", bins = ["wasm-bindgen", "wasm-bindgen-test-runner"] }
+trunk = { version = "0.21.14" }
 
 [workspace.lints.rust]
 # Group lints
@@ -57,6 +58,7 @@ rust_2021_compatibility = { level = "warn", priority = -1 }
 rust_2024_compatibility = { level = "warn", priority = -1 }
 
 # Individual lints
+missing_docs = "deny"
 unsafe_code = "deny"
 unstable_features = "deny"
 unused_extern_crates = "warn"

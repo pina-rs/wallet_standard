@@ -1423,7 +1423,7 @@ dependencies = [
 
 [[package]]
 name = "wallet_standard"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "async-trait",
  "bincode",
@@ -1431,6 +1431,7 @@ dependencies = [
  "getrandom 0.3.4",
  "getrandom 0.4.3",
  "insta",
+ "js-sys",
  "serde",
  "serde-wasm-bindgen",
  "serde_bytes",
@@ -1450,7 +1451,7 @@ dependencies = [
 
 [[package]]
 name = "wallet_standard_browser"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "async-trait",
  "bincode",

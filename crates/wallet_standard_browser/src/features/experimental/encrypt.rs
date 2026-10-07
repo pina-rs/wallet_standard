@@ -30,14 +30,19 @@ impl ExperimentalEncryptOutput for BrowserExperimentalEncryptOutput {
 #[wasm_bindgen]
 extern "C" {
 	#[derive(Clone, Debug)]
+	/// The JavaScript `{ ciphertext, nonce }` output of an
+	/// `experimental:encrypt` call; field names follow
+	/// `@wallet-standard/experimental-features`.
 	pub type BrowserExperimentalEncryptOutput;
 	/// `ciphertext` that was encrypted.
-	#[wasm_bindgen(method, getter, js_name = "cipher_text")]
+	#[wasm_bindgen(method, getter, js_name = "ciphertext")]
 	pub fn _cipher_text(this: &BrowserExperimentalEncryptOutput) -> Vec<u8>;
 	/// Nonce that was used for encryption.
 	#[wasm_bindgen(method, getter, js_name = "nonce")]
 	pub fn _nonce(this: &BrowserExperimentalEncryptOutput) -> Vec<u8>;
 	#[derive(Clone, Debug)]
+	/// The JavaScript `experimental:encrypt` feature object of a
+	/// registered wallet.
 	pub type ExperimentalEncryptFeature;
 	/// Version of the feature API.
 	#[wasm_bindgen(method, getter)]
@@ -45,7 +50,8 @@ extern "C" {
 	/// List of ciphers supported for encryption.
 	#[wasm_bindgen(method, getter)]
 	pub fn ciphers(this: &ExperimentalEncryptFeature) -> Vec<String>;
-	/// Encrypt cleartexts using the account's secret key.
+	/// Encrypt cleartexts to the account's public key. The wallet never sees
+	/// the plaintext it returns, which is what makes the feature experimental.
 	///
 	/// @param inputs Inputs for encryption.
 	///
@@ -62,11 +68,15 @@ impl_feature_from_js!(ExperimentalEncryptFeature, EXPERIMENTAL_ENCRYPT);
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
+/// The wire-format input for `experimental:encrypt`, flattened to the
+/// exact object the JavaScript feature receives.
 pub struct ExperimentalEncryptInput {
 	/// Account to use.
 	#[serde(with = "serde_wasm_bindgen::preserve")]
 	pub account: BrowserWalletAccountInfo,
 	#[serde(flatten)]
+	/// The cipher, counterparty public key, cleartext, and padding that
+	/// parameterize this encryption.
 	pub props: ExperimentalEncryptProps,
 }
 

@@ -50,7 +50,9 @@
 		".bin/",
 		".local-cache/",
 		"**/dist/**",
-		"**/pkg/"
+		"**/pkg/",
+		"examples/e2e/package-lock.json",
+		".templates/**"
 	],
 	"plugins": [
 		"https://plugins.dprint.dev/typescript-0.95.12.wasm",

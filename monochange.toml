@@ -66,6 +66,11 @@ inputs = [
 ]
 steps = [
 	{ name = "prepare release", type = "PrepareRelease", allow_empty_changesets = true, inputs = { format = "json" } },
+	# `PrepareRelease` rewrites `[workspace.package.version]`, and the
+	# `install_deps` provider in `.templates/docs.t.md` interpolates that
+	# version into the readmes and the getting-started page. Without this sync
+	# the release commit left those copies stale and failed `lint:docs`.
+	{ name = "sync single-sourced docs", type = "Command", shell = "bash", command = "fix:docs", when = "{{ number_of_changesets > 0 }}" },
 	{ name = "format release commit", type = "Command", shell = "bash", command = "fix:format", when = "{{ number_of_changesets > 0 }}" },
 	{ name = "commit release", type = "CommitRelease", inputs = { stage_all = true, no_verify = true }, when = "{{ number_of_changesets > 0 }}" },
 	{ name = "open release request", type = "OpenReleaseRequest", inputs = { stage_all = true, no_verify = true }, when = "{{ number_of_changesets > 0 && inputs.create_pr }}" },

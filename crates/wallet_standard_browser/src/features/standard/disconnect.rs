@@ -12,10 +12,13 @@ use crate::impl_feature_from_js;
 
 #[wasm_bindgen]
 extern "C" {
+	/// app revokes its own authorization.
 	#[derive(Clone, Debug)]
 	pub type StandardDisconnectFeature;
+	/// Version of the disconnect feature the wallet implements.
 	#[wasm_bindgen(method, getter)]
 	pub fn version(this: &StandardDisconnectFeature) -> String;
+	/// The wallet-side JS `disconnect` method.
 	#[allow(unused_qualifications)]
 	#[wasm_bindgen(method, catch, js_name = disconnect)]
 	pub async fn _disconnect(this: &StandardDisconnectFeature) -> Result<(), JsValue>;
@@ -24,6 +27,11 @@ extern "C" {
 impl_feature_from_js!(StandardDisconnectFeature, STANDARD_DISCONNECT);
 
 impl StandardDisconnectFeature {
+	/// Revoke the app's authorization without uninstalling the wallet.
+	///
+	/// # Errors
+	///
+	/// Forwards the wallet's rejection.
 	pub async fn disconnect(&self) -> WalletResult<()> {
 		self._disconnect().await?;
 		Ok(())
@@ -37,7 +45,8 @@ impl WalletStandardDisconnect for BrowserWallet {
 			return Err(WalletError::WalletDisconnected);
 		}
 
-		self.disconnect().await?;
+		let feature = self.wallet.get_feature::<StandardDisconnectFeature>()?;
+		feature.disconnect().await?;
 		self.wallet_account = None;
 
 		Ok(())

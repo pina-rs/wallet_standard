@@ -12,9 +12,18 @@ use crate::WalletAccountInfo;
 use crate::WalletError;
 use crate::WalletResult;
 
+/// Feature identifier for Sign In With Solana.
+///
+/// Based on EIP-4361 / CAIP-122: the app states who it is and what it
+/// wants, and the wallet returns a signed statement, giving login
+/// semantics without exposing an account before the user consents.
 pub const SOLANA_SIGN_IN: &str = "solana:signIn";
 
+/// The result of a Sign In With Solana attempt: the account that signed,
+/// the statement that was signed, and its signature.
 pub trait SolanaSignInOutput: SolanaSignatureOutput + SolanaSignMessageOutput {
+	/// The account type the wallet hands back, which may differ from the
+	/// account the app addressed.
 	type Account: WalletAccountInfo;
 	/// Account that was signed in.
 	/// The address of the account may be different from the provided input
@@ -24,6 +33,10 @@ pub trait SolanaSignInOutput: SolanaSignatureOutput + SolanaSignMessageOutput {
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
+/// The app's side of a Sign In With Solana statement.
+///
+/// Every optional field is one the wallet is trusted to infer, so minimal
+/// inputs still produce a well-formed signed statement.
 pub struct SolanaSignInInput {
 	/// Optional EIP-4361 Domain.
 	/// If not provided, the wallet must determine the Domain to include in the
@@ -79,10 +92,26 @@ pub struct SolanaSignInInput {
 }
 
 #[async_trait(?Send)]
+/// Performs Sign In With Solana through the wallet.
+///
+/// Apps use this instead of connect-then-signMessage so they never see an
+/// address before the user has approved the login statement itself.
 pub trait WalletSolanaSignIn {
+	/// The wallet-specific output carrying the signed statement.
 	type Output: SolanaSignInOutput;
 
+	/// Request one signed login statement.
+	///
+	/// # Errors
+	///
+	/// Fails with [`WalletError::WalletSignIn`] when the wallet rejects
+	/// the attempt.
 	async fn sign_in(&self, input: SolanaSignInInput) -> WalletResult<Self::Output>;
+	/// Request several signed statements in one round trip.
+	///
+	/// # Errors
+	///
+	/// Fails with [`WalletError::InvalidArguments`] for an empty batch.
 	async fn sign_in_many(&self, inputs: Vec<SolanaSignInInput>)
 	-> WalletResult<Vec<Self::Output>>;
 }
@@ -187,7 +216,6 @@ fn verify_output_text(
 	confirm_field_exists!(input.request_id, "Request ID");
 
 	// TODO check resources
-
 	Ok(())
 }
 
@@ -255,6 +283,7 @@ pub fn create_sign_in_message_text(input: &SolanaSignInInput) -> WalletResult<St
 
 	if let Some(ref resources) = input.resources {
 		fields.push("Resources:".to_string());
+
 		for resource in resources {
 			fields.push(format!("- {resource}"));
 		}

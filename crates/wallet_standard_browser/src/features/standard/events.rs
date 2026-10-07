@@ -13,6 +13,7 @@ use crate::impl_feature_from_js;
 
 #[wasm_bindgen]
 extern "C" {
+	/// fields that actually changed are present.
 	#[derive(Clone, Debug)]
 	pub type BrowserStandardEventsProperties;
 	/// {@link "@wallet-standard/base".Wallet.chains | Chains} supported by the
@@ -44,10 +45,15 @@ extern "C" {
 	pub fn _accounts(
 		this: &BrowserStandardEventsProperties,
 	) -> Option<Vec<BrowserWalletAccountInfo>>;
+	/// apps can subscribe to its change notifications.
 	#[derive(Clone, Debug)]
 	pub type StandardEventsFeature;
+	/// Version of the events feature the wallet implements, which apps
+	/// check before relying on newer notification shapes.
 	#[wasm_bindgen(method, getter)]
 	pub fn version(this: &StandardEventsFeature) -> String;
+	/// Subscribe to a wallet event; returns the unsubscribe function
+	/// directly because it never rejects.
 	#[wasm_bindgen(method, js_name = on)]
 	pub fn on(
 		this: &StandardEventsFeature,

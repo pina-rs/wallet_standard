@@ -47,6 +47,12 @@ The TypeScript reference implementation describes wallets as plain objects whose
 
 A type that implements `Wallet`, `WalletStandardConnect` and `WalletStandardDisconnect` automatically implements `WalletStandard` — the trait bound apps should target when they want a "full" standard wallet. The `WalletSolana` supertrait bundles the complete Solana feature set, and `wallet_standard::prelude` re-exports everything you need in one import.
 
+<!-- {=sign_and_send_rationale|trim} -->
+
+`solana:signAndSendTransaction` is the safer counterpart to `solana:signTransaction`: the wallet signs **and broadcasts**, so a malicious app never holds a signed transaction it could replay or redirect. Apps that need to aggregate signatures, batch, or relay transactions themselves use `solana:signTransaction` instead — wallets that refuse to hand back signed payloads simply do not implement it.
+
+<!-- {/sign_and_send_rationale} -->
+
 ## Design principles
 
 1. **Async by default.** Every wallet interaction that could hit user UI (connection prompt, signing confirmation) is `async`.

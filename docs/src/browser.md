@@ -11,33 +11,36 @@
 use wallet_standard_browser::prelude::*;
 
 let wallets = get_wallets();
-let phantom = wallets.get("Phantom").ok_or(WalletError::WalletNotFound)?;
+let phantom = wallets
+    .get()
+    .into_iter()
+    .find(|wallet| wallet.name() == "Phantom")
+    .ok_or(WalletError::UnsupportedFeature {
+        feature: "standard:connect".into(),
+        wallet: "Phantom".into(),
+    })?;
 
-let accounts = phantom.connect().await?;
-let account = accounts.first().unwrap();
+let mut wallet = BrowserWallet::builder().wallet(phantom).build();
+let accounts = wallet.connect().await?;
+let account = accounts.first().cloned().ok_or(WalletError::WalletConnection)?;
 ```
 
 `get_wallets()` returns a snapshot of every wallet registered on the page at call time. Each returned `BrowserWallet` implements `Wallet`, `WalletStandardConnect`, `WalletStandardDisconnect` and (with the `solana` feature) the full Solana feature set — including `WalletSolanaSignMessage`, `WalletSolanaSignTransaction`, `WalletSolanaSignAndSendTransaction` and `WalletSolanaSignIn`.
 
 ## Registering a Rust wallet into the page
 
+Wallet-side registration requires constructing the JS wallet object — including feature objects whose methods are Rust closures exposed to JS — and then registering it. A complete, working implementation (connect, disconnect, events, `solana:signMessage`, `solana:signTransaction`, `solana:signAndSendTransaction`) lives in `examples/crates/surfpool-wallet-core/src/wallet.rs` and is exercised by the Leptos and Dioxus examples under `examples/`:
+
 ```rust,ignore
 use wallet_standard_browser::prelude::*;
 
-let info = BrowserWalletInfo::builder()
-    .name("MyWallet".to_string())
-    .icon("data:image/svg+xml;base64,...".to_string())
-    .chains(vec!["solana:mainnet".to_string()])
-    .features(vec![
-        "standard:connect".to_string(),
-        "solana:signMessage".to_string(),
-    ])
-    .accounts(vec![])
-    .build();
+// Build a wallet object whose `features` map holds feature objects with
+// Rust-backed JS callbacks (see the example for the full construction).
+let wallet = build_wallet_object(/* … */);
 
 // After this call, every @wallet-standard/app consumer on the
 // page (React apps, other extensions) sees your wallet.
-register_wallet(&info)?;
+register_wallet(wallet)?;
 ```
 
 The browser bridge bundles the official `@wallet-standard/app` and `@wallet-standard/wallet` ESM modules under `crates/wallet_standard_browser/js/` and binds them with `wasm-bindgen`. The `copy:js` devenv script refreshes those bundles.

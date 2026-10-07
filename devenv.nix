@@ -27,6 +27,7 @@ in
       cmake
       curl
       custom.agave
+      custom.mdt
       custom.monochange
       dprint
       gcc
@@ -245,8 +246,16 @@ in
       exec = ''
         set -e
         cargo test_wallet_standard
+        test:browser
       '';
       description = "Run all tests across the crates";
+    };
+    "test:browser" = {
+      exec = ''
+        set -e
+        cargo test --package wallet_standard_browser --all-features --target wasm32-unknown-unknown
+      '';
+      description = "Run the browser test suite in headless Chrome.";
     };
     "coverage:all" = {
       exec = ''
@@ -326,8 +335,29 @@ in
         lint:clippy
         lint:monochange
         lint:format
+        lint:docs
       '';
       description = "Run all checks.";
+    };
+    "lint:docs" = {
+      exec = ''
+        set -e
+        mdt check
+      '';
+      description = "Check that single-sourced documentation is in sync.";
+    };
+    "fix:docs" = {
+      exec = ''
+        set -e
+        # The release commit rewrites `[workspace.package.version]`, and the
+        # `install_deps` provider interpolates that version, so a release left
+        # the readmes and getting-started page stale and failed `lint:docs` on
+        # the release pull request. Syncing here keeps every generated copy of
+        # the version in the same commit as the bump, instead of a follow-up
+        # commit that would make the tag differ from the release notes.
+        mdt update
+      '';
+      description = "Sync single-sourced documentation from its providers.";
     };
     "lint:format" = {
       exec = ''

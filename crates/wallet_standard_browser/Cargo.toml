@@ -48,6 +48,7 @@ solana = [
 	"dep:bincode",
 	"dep:solana-pubkey",
 	"dep:solana-signature",
+	"dep:solana-transaction",
 	"wallet_standard/solana",
 ]
 

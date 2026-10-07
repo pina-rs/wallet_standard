@@ -11,6 +11,11 @@ use crate::SolanaSignMessageFeature;
 use crate::SolanaSignTransactionFeature;
 
 impl BrowserWalletInfo {
+	/// Whether the wallet implements the standard features plus every
+	/// Solana signing feature.
+	///
+	/// Apps with Solana-only requirements use this as their single
+	/// admission check when filtering the registry.
 	pub fn is_solana_standard_compatible(&self) -> bool {
 		self.is_standard_compatible()
 			&& self.is_feature_supported::<SolanaSignMessageFeature>()

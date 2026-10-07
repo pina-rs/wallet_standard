@@ -1,0 +1,228 @@
+{
+	"schema_version": "0.7",
+	"kind": "monochange.releaseRecord",
+	"created_at": "2026-09-28T16:01:58Z",
+	"command": "release",
+	"version": "0.7.0",
+	"versions": {
+		"core": "0.7.0"
+	},
+	"release_targets": [
+		{
+			"id": "core",
+			"kind": "group",
+			"version": "0.7.0",
+			"version_format": "primary",
+			"tag": true,
+			"release": true,
+			"tag_name": "v0.7.0",
+			"members": [
+				"wallet_standard",
+				"wallet_standard_browser"
+			]
+		}
+	],
+	"released_packages": [
+		"wallet_standard",
+		"wallet_standard_browser"
+	],
+	"changed_files": [
+		"Cargo.lock",
+		"Cargo.toml",
+		"changelog.md",
+		"crates/wallet_standard/Cargo.toml",
+		"crates/wallet_standard_browser/Cargo.toml"
+	],
+	"package_publications": [
+		{
+			"package": "wallet_standard",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.0",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "wallet_standard_browser",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.0",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		}
+	],
+	"updated_changelogs": [
+		"changelog.md"
+	],
+	"deleted_changesets": [
+		".changeset/fix-browser-wallet-interop.md"
+	],
+	"changesets": [
+		{
+			"path": ".changeset/fix-browser-wallet-interop.md",
+			"summary": "Fix browser wallet interop and panic safety",
+			"details": "`wallet_standard_browser` 0.6.0 shipped several defects that made the browser integration unusable against real Wallet Standard wallets. The transaction signing APIs had never successfully executed against a JavaScript wallet, so their input shape is corrected as a breaking release rather than papered over:\n\n- **Breaking**: `SolanaSignTransactionInput` and `SolanaSignAndSendTransactionInput` are flat wire-format structs (`account`, `transaction` bytes, `chain`, `options`) matching `@solana/wallet-standard-features`, replacing the `props`-flattened shapes that `serde-wasm-bindgen` serialized as empty objects.\n- The `solana` feature did not enable the `solana-transaction` optional dependency, so `wallet_standard_browser` with only `features = [\"solana\"]` failed to compile outside of `--all-features` builds.\n- `WalletStandardConnect::connect_with_options` and `WalletStandardDisconnect::disconnect` on `BrowserWallet` called themselves instead of delegating to the registered wallet's feature, causing infinite recursion (a WASM stack overflow at runtime).\n- `sign_transactions` serialized the `WalletResult` wrapper instead of the collected inputs, so JS wallets received `{\"Ok\":[{}]}` rather than the input array.\n- `BrowserWalletAccountInfo::try_new` performed an `instanceof` check against the `#[wasm_bindgen(module = ...)]` extern, emitting a named import that `/js/app.js` does not export and breaking module instantiation for any bundle that called it.\n- The `solana:signAndSendTransaction` feature read `supported_transaction_versions` (snake case) instead of `supportedTransactionVersions`, breaking every JS wallet.\n- The `experimental:encrypt` output read `cipher_text` instead of the spec's `ciphertext` (`@wallet-standard/experimental-features`), and the decrypt props serialized the same field as `cipherText`.\n- JS rejections converted through `WalletError::from(JsValue)` now surface the `message` of `Error`/`DOMException` values instead of a fixed placeholder.\n- `Wallets::try_register` registers without panicking; the page-controlled registry can no longer take down the WASM module through `Wallets::register`.\n\nCI now covers what let these ship: a `check-features` job builds every feature combination a downstream user can name (including `wasm32` targets), a `test-browser` job runs the rewritten `wasm-bindgen-test` suite in headless Chrome — including boundary-shape regression tests for every input struct — and an `e2e` job runs the new Leptos 0.8 / Dioxus 0.7 examples plus Playwright suite against a local surfpool node (`examples/e2e`).",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "fix"
+				},
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "major",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "breaking"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "bcb1a3e292f4580cdb2c21bd116c3e9e83f098fe",
+						"short_sha": "bcb1a3e",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/bcb1a3e292f4580cdb2c21bd116c3e9e83f098fe",
+						"authored_at": "2026-09-28T16:55:15+01:00",
+						"committed_at": "2026-09-28T16:55:15+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#55",
+						"title": "fix(browser): repair the wallet standard browser bridge",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/55",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "bcb1a3e292f4580cdb2c21bd116c3e9e83f098fe",
+						"short_sha": "bcb1a3e",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/bcb1a3e292f4580cdb2c21bd116c3e9e83f098fe",
+						"authored_at": "2026-09-28T16:55:15+01:00",
+						"committed_at": "2026-09-28T16:55:15+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#55",
+						"title": "fix(browser): repair the wallet standard browser bridge",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/55",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": [
+					{
+						"provider": "github",
+						"host": "github.com",
+						"id": "#45",
+						"title": null,
+						"url": "https://github.com/pina-rs/wallet_standard/issues/45",
+						"relationship": "referenced_by_review_request"
+					}
+				]
+			}
+		}
+	],
+	"changelogs": [
+		{
+			"owner_id": "core",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "[0.7.0](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.0) (2026-09-28)",
+				"summary": [
+					"Grouped release for `core`."
+				],
+				"sections": [
+					{
+						"title": "Breaking Changes",
+						"collapsed": false,
+						"entries": [
+							"#### Fix browser wallet interop and panic safety\n\n_Packages:_ 🟢 _wallet_standard_, 🔴 _wallet_standard_browser_\n\n`wallet_standard_browser` 0.6.0 shipped several defects that made the browser integration unusable against real Wallet Standard wallets. The transaction signing APIs had never successfully executed against a JavaScript wallet, so their input shape is corrected as a breaking release rather than papered over:\n\n- **Breaking**: `SolanaSignTransactionInput` and `SolanaSignAndSendTransactionInput` are flat wire-format structs (`account`, `transaction` bytes, `chain`, `options`) matching `@solana/wallet-standard-features`, replacing the `props`-flattened shapes that `serde-wasm-bindgen` serialized as empty objects.\n- The `solana` feature did not enable the `solana-transaction` optional dependency, so `wallet_standard_browser` with only `features = [\"solana\"]` failed to compile outside of `--all-features` builds.\n- `WalletStandardConnect::connect_with_options` and `WalletStandardDisconnect::disconnect` on `BrowserWallet` called themselves instead of delegating to the registered wallet's feature, causing infinite recursion (a WASM stack overflow at runtime).\n- `sign_transactions` serialized the `WalletResult` wrapper instead of the collected inputs, so JS wallets received `{\"Ok\":[{}]}` rather than the input array.\n- `BrowserWalletAccountInfo::try_new` performed an `instanceof` check against the `#[wasm_bindgen(module = ...)]` extern, emitting a named import that `/js/app.js` does not export and breaking module instantiation for any bundle that called it.\n- The `solana:signAndSendTransaction` feature read `supported_transaction_versions` (snake case) instead of `supportedTransactionVersions`, breaking every JS wallet.\n- The `experimental:encrypt` output read `cipher_text` instead of the spec's `ciphertext` (`@wallet-standard/experimental-features`), and the decrypt props serialized the same field as `cipherText`.\n- JS rejections converted through `WalletError::from(JsValue)` now surface the `message` of `Error`/`DOMException` values instead of a fixed placeholder.\n- `Wallets::try_register` registers without panicking; the page-controlled registry can no longer take down the WASM module through `Wallets::register`.\n\nCI now covers what let these ship: a `check-features` job builds every feature combination a downstream user can name (including `wasm32` targets), a `test-browser` job runs the rewritten `wasm-bindgen-test` suite in headless Chrome — including boundary-shape regression tests for every input struct — and an `e2e` job runs the new Leptos 0.8 / Dioxus 0.7 examples plus Playwright suite against a local surfpool node (`examples/e2e`).\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #55](https://github.com/pina-rs/wallet_standard/pull/55) · _Related issues:_ [#45](https://github.com/pina-rs/wallet_standard/issues/45)"
+						]
+					}
+				]
+			},
+			"rendered": "## [0.7.0](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.0) (2026-09-28)\n\nGrouped release for `core`.\n\n### Breaking Changes\n\n#### Fix browser wallet interop and panic safety\n\n_Packages:_ 🟢 _wallet_standard_, 🔴 _wallet_standard_browser_\n\n`wallet_standard_browser` 0.6.0 shipped several defects that made the browser integration unusable against real Wallet Standard wallets. The transaction signing APIs had never successfully executed against a JavaScript wallet, so their input shape is corrected as a breaking release rather than papered over:\n\n- **Breaking**: `SolanaSignTransactionInput` and `SolanaSignAndSendTransactionInput` are flat wire-format structs (`account`, `transaction` bytes, `chain`, `options`) matching `@solana/wallet-standard-features`, replacing the `props`-flattened shapes that `serde-wasm-bindgen` serialized as empty objects.\n- The `solana` feature did not enable the `solana-transaction` optional dependency, so `wallet_standard_browser` with only `features = [\"solana\"]` failed to compile outside of `--all-features` builds.\n- `WalletStandardConnect::connect_with_options` and `WalletStandardDisconnect::disconnect` on `BrowserWallet` called themselves instead of delegating to the registered wallet's feature, causing infinite recursion (a WASM stack overflow at runtime).\n- `sign_transactions` serialized the `WalletResult` wrapper instead of the collected inputs, so JS wallets received `{\"Ok\":[{}]}` rather than the input array.\n- `BrowserWalletAccountInfo::try_new` performed an `instanceof` check against the `#[wasm_bindgen(module = ...)]` extern, emitting a named import that `/js/app.js` does not export and breaking module instantiation for any bundle that called it.\n- The `solana:signAndSendTransaction` feature read `supported_transaction_versions` (snake case) instead of `supportedTransactionVersions`, breaking every JS wallet.\n- The `experimental:encrypt` output read `cipher_text` instead of the spec's `ciphertext` (`@wallet-standard/experimental-features`), and the decrypt props serialized the same field as `cipherText`.\n- JS rejections converted through `WalletError::from(JsValue)` now surface the `message` of `Error`/`DOMException` values instead of a fixed placeholder.\n- `Wallets::try_register` registers without panicking; the page-controlled registry can no longer take down the WASM module through `Wallets::register`.\n\nCI now covers what let these ship: a `check-features` job builds every feature combination a downstream user can name (including `wasm32` targets), a `test-browser` job runs the rewritten `wasm-bindgen-test` suite in headless Chrome — including boundary-shape regression tests for every input struct — and an `e2e` job runs the new Leptos 0.8 / Dioxus 0.7 examples plus Playwright suite against a local surfpool node (`examples/e2e`).\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #55](https://github.com/pina-rs/wallet_standard/pull/55) · _Related issues:_ [#45](https://github.com/pina-rs/wallet_standard/issues/45)"
+		}
+	],
+	"provider": {
+		"kind": "github",
+		"owner": "pina-rs",
+		"repo": "wallet_standard",
+		"host": null
+	}
+}

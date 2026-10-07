@@ -21,6 +21,8 @@ use crate::impl_feature_from_js;
 #[wasm_bindgen]
 extern "C" {
 	#[derive(Clone, Debug)]
+	/// The JavaScript `{ signedMessage, signature }` output of a
+	/// `solana:signMessage` call.
 	pub type BrowserSolanaSignMessageOutput;
 	/// Message bytes that were signed.
 	/// The wallet may prefix or otherwise modify the message before signing it.
@@ -35,6 +37,8 @@ extern "C" {
 	#[wasm_bindgen(method, getter, js_name = signatureType)]
 	pub fn _signature_type(this: &BrowserSolanaSignMessageOutput) -> Option<String>;
 	#[derive(Clone, Debug)]
+	/// The JavaScript `solana:signMessage` feature object of a registered
+	/// wallet.
 	pub type SolanaSignMessageFeature;
 	/// Version of the feature API.
 	#[wasm_bindgen(method, getter)]
@@ -82,6 +86,9 @@ impl_feature_from_js!(SolanaSignMessageFeature, SOLANA_SIGN_MESSAGE);
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
+/// The wire-format input for `solana:signMessage`: the account to sign
+/// with and the raw message bytes, flattened to the exact shape the
+/// JavaScript feature receives.
 pub struct SolanaSignMessageInput {
 	/// Account to use.
 	#[serde(with = "serde_wasm_bindgen::preserve")]
