@@ -69,7 +69,7 @@ pub trait WalletInfo {
 	///
 	/// # Example
 	///
-	/// ```
+	/// ```rust,ignore
 	/// vec!["solana:mainnet".to_string(), "solana:devnet".to_string()]
 	/// ```
 	fn chains(&self) -> Vec<String>;
@@ -108,7 +108,7 @@ pub trait WalletInfo {
 	///
 	/// # Example
 	///
-	/// ```
+	/// ```rust,ignore
 	/// vec![
 	/// 	"standard:connect".to_string(),
 	/// 	"standard:disconnect".to_string(),
@@ -181,7 +181,7 @@ pub trait WalletAccountInfo {
 	///
 	/// # Example
 	///
-	/// ```
+	/// ```rust,ignore
 	/// // A 32-byte Ed25519 public key
 	/// vec![0, 1, 2, 3 /* ... */]
 	/// ```
@@ -193,7 +193,7 @@ pub trait WalletAccountInfo {
 	///
 	/// # Example
 	///
-	/// ```
+	/// ```rust,ignore
 	/// vec!["solana:mainnet".to_string()]
 	/// ```
 	fn chains(&self) -> Vec<String>;
@@ -204,7 +204,7 @@ pub trait WalletAccountInfo {
 	///
 	/// # Example
 	///
-	/// ```
+	/// ```rust,ignore
 	/// vec![
 	/// 	"solana:signMessage".to_string(),
 	/// 	"solana:signTransaction".to_string(),
@@ -216,7 +216,7 @@ pub trait WalletAccountInfo {
 	///
 	/// # Example
 	///
-	/// ```
+	/// ```rust,ignore
 	/// Some("Main Account".to_string())
 	/// ```
 	fn label(&self) -> Option<String>;
@@ -227,7 +227,7 @@ pub trait WalletAccountInfo {
 	///
 	/// # Example
 	///
-	/// ```
+	/// ```rust,ignore
 	/// Some("data:image/svg+xml;base64,...".to_string())
 	/// ```
 	fn icon(&self) -> Option<String>;

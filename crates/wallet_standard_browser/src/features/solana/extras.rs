@@ -6,6 +6,7 @@ use wallet_standard::WalletSolanaPubkey;
 
 use crate::BrowserWalletAccountInfo;
 use crate::BrowserWalletInfo;
+use crate::FeatureFromJs;
 use crate::SolanaSignAndSendTransactionFeature;
 use crate::SolanaSignMessageFeature;
 use crate::SolanaSignTransactionFeature;
@@ -17,10 +18,15 @@ impl BrowserWalletInfo {
 	/// Apps with Solana-only requirements use this as their single
 	/// admission check when filtering the registry.
 	pub fn is_solana_standard_compatible(&self) -> bool {
+		// `is_standard_compatible` reads the feature map once for the
+		// standard trio; this reads it once more for the Solana trio,
+		// instead of one JavaScript getter call per probed feature.
+		let features = self.features_object();
+
 		self.is_standard_compatible()
-			&& self.is_feature_supported::<SolanaSignMessageFeature>()
-			&& self.is_feature_supported::<SolanaSignTransactionFeature>()
-			&& self.is_feature_supported::<SolanaSignAndSendTransactionFeature>()
+			&& SolanaSignMessageFeature::feature_from_js_object(&features).is_some()
+			&& SolanaSignTransactionFeature::feature_from_js_object(&features).is_some()
+			&& SolanaSignAndSendTransactionFeature::feature_from_js_object(&features).is_some()
 	}
 }
 

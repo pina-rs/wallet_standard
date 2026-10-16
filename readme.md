@@ -14,10 +14,10 @@
 
 This repository contains Rust crates that implement the Wallet Standard for Solana, making it easier to interact with Solana in WebAssembly environments:
 
-| Crate                     | Version                                                                            | Description                                                     |
-| ------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `wallet_standard`         | <!-- {~core-v:"{{ cargo.workspace.package.version }}"} --><!-- {/core-v} -->       | Core implementation of the wallet standard interface for Solana |
-| `wallet_standard_browser` | <!-- {~browser-v:"{{ cargo.workspace.package.version }}"} --><!-- {/browser-v} --> | Browser-specific implementation of the wallet standard          |
+| Crate                     | Version                                                                                 | Description                                                     |
+| ------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `wallet_standard`         | <!-- {~core-v:"{{ cargo.workspace.package.version }}"} -->0.7.1<!-- {/core-v} -->       | Core implementation of the wallet standard interface for Solana |
+| `wallet_standard_browser` | <!-- {~browser-v:"{{ cargo.workspace.package.version }}"} -->0.7.1<!-- {/browser-v} --> | Browser-specific implementation of the wallet standard          |
 
 ### Crate Details
 

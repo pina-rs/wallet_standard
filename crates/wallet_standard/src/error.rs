@@ -44,7 +44,7 @@ pub enum WalletError {
 	/// A Solana program rejected an instruction during execution or
 	/// preflight simulation.
 	Program(#[from] solana_program_error::ProgramError),
-	#[error("an error occured during deserialization: {0}")]
+	#[error("an error occurred during deserialization: {0}")]
 	/// A value could not be (de)serialized at the boundary, meaning the
 	/// wallet and the app disagreed on the wire shape.
 	Serde(String),
