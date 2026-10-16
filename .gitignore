@@ -25,6 +25,7 @@ devenv.local.nix
 node_modules/
 /.bin/
 /.local-cache/
+/.eget/
 /.sass-cache/
 /.test-results/
 /test-results/
