@@ -474,7 +474,8 @@ fn start() {
 /// runs and the fees between them.
 const AIRDROP_LAMPORTS: u64 = 1_000_000_000;
 
-/// The demo transfer: a hundredth of the airdrop, so one airdrop funds many runs.
+/// The demo transfer: a hundredth of the airdrop, so one airdrop funds many
+/// runs.
 const TRANSFER_LAMPORTS: u64 = 10_000_000;
 
 fn main() {}

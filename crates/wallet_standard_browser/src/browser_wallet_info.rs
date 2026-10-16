@@ -291,9 +291,14 @@ impl BrowserWalletInfo {
 	/// events the wallet cannot participate in the standard's lifecycle,
 	/// regardless of which chain features it advertises.
 	pub fn is_standard_compatible(&self) -> bool {
-		self.is_feature_supported::<StandardConnectFeature>()
-			&& self.is_feature_supported::<StandardEventsFeature>()
-			&& self.is_feature_supported::<StandardDisconnectFeature>()
+		// One read of the `features` object feeds every probe: each
+		// `is_feature_supported` call below would re-enter JavaScript to
+		// fetch the same map, and discovery runs this per registered wallet.
+		let features = self.features_object();
+
+		StandardConnectFeature::feature_from_js_object(&features).is_some()
+			&& StandardEventsFeature::feature_from_js_object(&features).is_some()
+			&& StandardDisconnectFeature::feature_from_js_object(&features).is_some()
 	}
 }
 

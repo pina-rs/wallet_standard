@@ -219,12 +219,14 @@ impl WalletStandardDisconnect for MyWallet {
 ### Implementing Solana-Specific Features
 
 ```rust
-use solana_signature::Keypair;
+use async_trait::async_trait;
+use solana_keypair::Keypair;
 use solana_signature::Signature;
 use solana_signer::Signer;
 use wallet_standard::prelude::*;
 
 // Assuming MyWallet is defined as above
+struct MyWallet;
 
 // Define a custom output type for sign message
 struct MySignMessageOutput {
@@ -293,7 +295,7 @@ use wallet_standard::prelude::*;
 
 fn handle_wallet_operation() -> WalletResult<()> {
 	// Attempt some wallet operation
-	let result = some_wallet_function();
+	let result: WalletResult<()> = Err(WalletError::WalletNotConnected);
 
 	match result {
 		Ok(_) => Ok(()),

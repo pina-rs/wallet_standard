@@ -116,7 +116,7 @@ pub trait WalletSolanaSignIn {
 	-> WalletResult<Vec<Self::Output>>;
 }
 
-/// Check tha the input and output of the sign in are valid.
+/// Check that the input and output of the sign in are valid.
 pub fn verify_sign_in(
 	input: &SolanaSignInInput,
 	output: &impl SolanaSignInOutput,
@@ -131,10 +131,13 @@ pub fn verify_sign_in(
 		return Err(WalletError::WalletSignIn);
 	}
 
-	verify_output_text(input, output)?;
+	// `signed_message` crosses the wasm boundary once and feeds both the
+	// text check and the signature check.
+	let signed_message = output.signed_message();
+
+	verify_output_text(input, &signed_message)?;
 
 	let signature = output.try_signature()?;
-	let signed_message = output.signed_message();
 	let bytes = account.public_key();
 	let pubkey = Pubkey::try_from(bytes).map_err(|_| WalletError::WalletPublicKey)?;
 
@@ -150,12 +153,9 @@ pub fn verify_sign_in(
 }
 
 #[allow(unused_assignments)]
-fn verify_output_text(
-	input: &SolanaSignInInput,
-	output: &impl SolanaSignInOutput,
-) -> WalletResult<()> {
+fn verify_output_text(input: &SolanaSignInInput, signed_message: &[u8]) -> WalletResult<()> {
 	let input_text = create_sign_in_message_text(input)?;
-	let output_text = String::from_utf8(output.signed_message())
+	let output_text = str::from_utf8(signed_message)
 		.map_err(|_| WalletError::ParseString("could not parse the signed_message".into()))?;
 
 	if input_text == output_text {
@@ -215,7 +215,23 @@ fn verify_output_text(
 	confirm_field_exists!(input.not_before, "Not Before");
 	confirm_field_exists!(input.request_id, "Request ID");
 
-	// TODO check resources
+	if let Some(ref resources) = input.resources {
+		let Some((_, remaining)) = output_text.split_once("Resources:") else {
+			return Err(WalletError::WalletSignIn);
+		};
+
+		output_text = remaining;
+
+		for resource in resources {
+			let Some((_, remaining)) = output_text.split_once(format!("- {resource}").as_str())
+			else {
+				return Err(WalletError::WalletSignIn);
+			};
+
+			output_text = remaining;
+		}
+	}
+
 	Ok(())
 }
 
@@ -290,8 +306,203 @@ pub fn create_sign_in_message_text(input: &SolanaSignInInput) -> WalletResult<St
 	}
 
 	if !fields.is_empty() {
-		write!(&mut message, "\n\n{}", fields.join("\n")).unwrap();
+		write!(&mut message, "\n\n{}", fields.join("\n"))?;
 	}
 
 	Ok(message)
+}
+
+#[cfg(test)]
+mod tests {
+	use solana_keypair::Keypair;
+	use solana_signature::Signature;
+	use solana_signer::Signer;
+
+	use super::*;
+
+	struct TestAccount {
+		address: String,
+		public_key: Vec<u8>,
+	}
+
+	impl WalletAccountInfo for TestAccount {
+		fn address(&self) -> String {
+			self.address.clone()
+		}
+
+		fn public_key(&self) -> Vec<u8> {
+			self.public_key.clone()
+		}
+
+		fn chains(&self) -> Vec<String> {
+			Vec::new()
+		}
+
+		fn features(&self) -> Vec<String> {
+			Vec::new()
+		}
+
+		fn label(&self) -> Option<String> {
+			None
+		}
+
+		fn icon(&self) -> Option<String> {
+			None
+		}
+	}
+
+	struct TestSignInOutput {
+		account: TestAccount,
+		signed_message: Vec<u8>,
+		signature: Signature,
+	}
+
+	impl SolanaSignatureOutput for TestSignInOutput {
+		fn try_signature(&self) -> WalletResult<Signature> {
+			Ok(self.signature)
+		}
+
+		fn signature(&self) -> Signature {
+			self.signature
+		}
+	}
+
+	impl SolanaSignMessageOutput for TestSignInOutput {
+		fn signed_message(&self) -> Vec<u8> {
+			self.signed_message.clone()
+		}
+
+		fn signature_type(&self) -> Option<String> {
+			None
+		}
+	}
+
+	impl SolanaSignInOutput for TestSignInOutput {
+		type Account = TestAccount;
+
+		fn account(&self) -> Self::Account {
+			TestAccount {
+				address: self.account.address.clone(),
+				public_key: self.account.public_key.clone(),
+			}
+		}
+	}
+
+	fn keypair() -> Keypair {
+		Keypair::new_from_array([7; 32])
+	}
+
+	fn input() -> SolanaSignInInput {
+		let address = keypair().pubkey().to_string();
+
+		SolanaSignInInput::builder()
+			.domain("example.com")
+			.address(address)
+			.statement("Accept the terms of service.")
+			.uri("https://example.com")
+			.version("1")
+			.chain_id("solana:mainnet")
+			.nonce("nonce-1")
+			.issued_at("2026-10-16T00:00:00Z")
+			.resources(vec![
+				"https://example.com/terms".to_string(),
+				"https://example.com/avatar.png".to_string(),
+			])
+			.build()
+	}
+
+	fn signed_output(input: &SolanaSignInInput) -> TestSignInOutput {
+		signed_output_with_message(input, create_sign_in_message_text(input).unwrap())
+	}
+
+	fn signed_output_with_message(input: &SolanaSignInInput, message: String) -> TestSignInOutput {
+		let keypair = keypair();
+		let signature = Signer::try_sign_message(&keypair, message.as_bytes()).unwrap();
+
+		TestSignInOutput {
+			account: TestAccount {
+				address: input.address.clone().unwrap(),
+				public_key: keypair.pubkey().to_bytes().to_vec(),
+			},
+			signed_message: message.into_bytes(),
+			signature,
+		}
+	}
+
+	#[test]
+	fn verify_sign_in_accepts_a_signed_statement_with_resources() {
+		let input = input();
+
+		verify_sign_in(&input, &signed_output(&input)).unwrap();
+	}
+
+	#[test]
+	fn verify_sign_in_rejects_a_statement_omitting_the_resources() {
+		let input = input();
+		// The wallet signed a statement that leaves the resources block out.
+		let message = create_sign_in_message_text(
+			&SolanaSignInInput::builder()
+				.domain(input.domain.clone().unwrap())
+				.address(input.address.clone().unwrap())
+				.statement(input.statement.clone().unwrap())
+				.uri(input.uri.clone().unwrap())
+				.version(input.version.clone().unwrap())
+				.chain_id(input.chain_id.clone().unwrap())
+				.nonce(input.nonce.clone().unwrap())
+				.issued_at(input.issued_at.clone().unwrap())
+				.build(),
+		)
+		.unwrap();
+
+		assert!(verify_sign_in(&input, &signed_output_with_message(&input, message)).is_err());
+	}
+
+	#[test]
+	fn verify_sign_in_rejects_a_statement_missing_one_resource() {
+		let input = input();
+		let message = create_sign_in_message_text(
+			&SolanaSignInInput::builder()
+				.domain(input.domain.clone().unwrap())
+				.address(input.address.clone().unwrap())
+				.statement(input.statement.clone().unwrap())
+				.uri(input.uri.clone().unwrap())
+				.version(input.version.clone().unwrap())
+				.chain_id(input.chain_id.clone().unwrap())
+				.nonce(input.nonce.clone().unwrap())
+				.issued_at(input.issued_at.clone().unwrap())
+				.resources(vec!["https://example.com/terms".to_string()])
+				.build(),
+		)
+		.unwrap();
+
+		assert!(verify_sign_in(&input, &signed_output_with_message(&input, message)).is_err());
+	}
+
+	#[test]
+	fn verify_sign_in_rejects_a_bad_signature() {
+		let input = input();
+		let mut output = signed_output(&input);
+
+		output.signed_message[0] ^= 1;
+
+		assert!(verify_sign_in(&input, &output).is_err());
+	}
+
+	#[test]
+	fn create_sign_in_message_text_lists_every_field_in_order() {
+		let text = create_sign_in_message_text(&input()).unwrap();
+		let expected = format!(
+			"example.com wants you to sign in with your Solana account:\n{}\
+			\n\nAccept the terms of service.\
+			\n\nURI: https://example.com\
+			\nVersion: 1\
+			\nChain ID: solana:mainnet\
+			\nNonce: nonce-1\
+			\nIssued At: 2026-10-16T00:00:00Z\
+			\nResources:\n- https://example.com/terms\n- https://example.com/avatar.png",
+			keypair().pubkey()
+		);
+
+		assert_eq!(text, expected);
+	}
 }
