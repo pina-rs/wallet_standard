@@ -4,6 +4,40 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.2) (2026-10-16)
+
+Grouped release for `core`.
+
+### Fixes
+
+#### Verify sign-in resources and fix broken doctests
+
+_Packages:_ 🟢 _wallet_standard_, 🟢 _wallet_standard_browser_
+
+_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #69](https://github.com/pina-rs/wallet_standard/pull/69)
+
+`verify_sign_in` now checks the `Resources:` block of a signed Sign In With Solana statement instead of skipping it, so a wallet that drops a requested resource can no longer pass verification. The signed message is read from the output once and shared by the text check and the signature check instead of crossing the wasm boundary twice, and `create_sign_in_message_text` propagates write failures like the rest of the function rather than `unwrap`ping.
+
+Nine doctests that failed to compile are fixed: the readme's Sign In With Solana example imported `Keypair` from the wrong crate and referenced an undefined wallet, its error-handling example called an undefined function, and the seven value illustrations in `types.rs` are now marked `rust,ignore` like the other illustrative snippets. The empty version markers in the root readme are filled in so `mdt check` passes again.
+
+Wallet discovery reads the JavaScript `features` object once per compatibility check instead of once per probed feature, and the dependency lockfile plus the pinned cargo tools (cargo-dylint 6.2.0, cargo-nextest 0.9.148, cargo-semver-checks 0.51.0, wasm-bindgen-cli 0.2.129) are refreshed to their latest releases.
+
+### Notes
+
+#### Classify pull request changes before they reach a release
+
+_Packages:_ ⚪ _wallet_standard_, ⚪ _wallet_standard_browser_
+
+_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #49](https://github.com/pina-rs/wallet_standard/pull/49)
+
+Add a `changeset-policy` workflow that runs two gates on every pull request.
+
+The changeset policy fails a pull request when changed release-owned paths are not covered by a changeset and posts one remediation comment. It now derives the changed packages from git history with `from: origin/main`, so it also compares each attached changeset bump against the classified change type.
+
+The change-classification step posts the compatibility evidence for the pull request: public API, dependency, and metadata changes with a proposed bump per package. The report separates the current pull request from everything accumulated since the last release, so a pull request that adds an API is not mistaken for one that breaks it.
+
+Classification runs at `--detection-level semantic` against a cargo-semver-checks matrix covering the default feature set and all features, so a break behind `solana` or `browser` is proven rather than inferred from syntax.
+
 ## [0.7.1](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.1) (2026-09-29)
 
 Grouped release for `core`.

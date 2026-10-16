@@ -1,0 +1,342 @@
+{
+	"schema_version": "0.9",
+	"kind": "monochange.releaseRecord",
+	"created_at": "2026-10-16T20:29:46Z",
+	"command": "release",
+	"version": "0.7.2",
+	"versions": {
+		"core": "0.7.2"
+	},
+	"release_targets": [
+		{
+			"id": "core",
+			"kind": "group",
+			"version": "0.7.2",
+			"version_format": "primary",
+			"tag": true,
+			"release": true,
+			"tag_name": "v0.7.2",
+			"rendered_title": "v0.7.2 (2026-10-16)",
+			"rendered_changelog_title": "[0.7.2](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.2) (2026-10-16)",
+			"members": [
+				"wallet_standard",
+				"wallet_standard_browser"
+			]
+		}
+	],
+	"released_packages": [
+		"wallet_standard",
+		"wallet_standard_browser"
+	],
+	"changed_files": [
+		"Cargo.lock",
+		"Cargo.toml",
+		"changelog.md",
+		"crates/wallet_standard/Cargo.toml",
+		"crates/wallet_standard_browser/Cargo.toml"
+	],
+	"package_publications": [
+		{
+			"package": "wallet_standard",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.2",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "wallet_standard_browser",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.2",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		}
+	],
+	"updated_changelogs": [
+		"changelog.md"
+	],
+	"deleted_changesets": [
+		".changeset/classify-changes-on-pull-requests.md",
+		".changeset/verify-sign-in-resources-and-refresh-deps.md"
+	],
+	"changesets": [
+		{
+			"path": ".changeset/classify-changes-on-pull-requests.md",
+			"summary": "Classify pull request changes before they reach a release",
+			"details": "Add a `changeset-policy` workflow that runs two gates on every pull request.\n\nThe changeset policy fails a pull request when changed release-owned paths are not covered by a changeset and posts one remediation comment. It now derives the changed packages from git history with `from: origin/main`, so it also compares each attached changeset bump against the classified change type.\n\nThe change-classification step posts the compatibility evidence for the pull request: public API, dependency, and metadata changes with a proposed bump per package. The report separates the current pull request from everything accumulated since the last release, so a pull request that adds an API is not mistaken for one that breaks it.\n\nClassification runs at `--detection-level semantic` against a cargo-semver-checks matrix covering the default feature set and all features, so a break behind `solana` or `browser` is proven rather than inferred from syntax.",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "none"
+				},
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "none",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "none"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "9aa3b7b9075d6e5608a7dc4bfa71eaff0e3df4d6",
+						"short_sha": "9aa3b7b",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/9aa3b7b9075d6e5608a7dc4bfa71eaff0e3df4d6",
+						"authored_at": "2026-10-16T20:51:47+01:00",
+						"committed_at": "2026-10-16T20:51:47+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#49",
+						"title": "build(classification): report pull request compatibility before release",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/49",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "9aa3b7b9075d6e5608a7dc4bfa71eaff0e3df4d6",
+						"short_sha": "9aa3b7b",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/9aa3b7b9075d6e5608a7dc4bfa71eaff0e3df4d6",
+						"authored_at": "2026-10-16T20:51:47+01:00",
+						"committed_at": "2026-10-16T20:51:47+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#49",
+						"title": "build(classification): report pull request compatibility before release",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/49",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		},
+		{
+			"path": ".changeset/verify-sign-in-resources-and-refresh-deps.md",
+			"summary": "Verify sign-in resources and fix broken doctests",
+			"details": "`verify_sign_in` now checks the `Resources:` block of a signed Sign In With Solana statement instead of skipping it, so a wallet that drops a requested resource can no longer pass verification. The signed message is read from the output once and shared by the text check and the signature check instead of crossing the wasm boundary twice, and `create_sign_in_message_text` propagates write failures like the rest of the function rather than `unwrap`ping.\n\nNine doctests that failed to compile are fixed: the readme's Sign In With Solana example imported `Keypair` from the wrong crate and referenced an undefined wallet, its error-handling example called an undefined function, and the seven value illustrations in `types.rs` are now marked `rust,ignore` like the other illustrative snippets. The empty version markers in the root readme are filled in so `mdt check` passes again.\n\nWallet discovery reads the JavaScript `features` object once per compatibility check instead of once per probed feature, and the dependency lockfile plus the pinned cargo tools (cargo-dylint 6.2.0, cargo-nextest 0.9.148, cargo-semver-checks 0.51.0, wasm-bindgen-cli 0.2.129) are refreshed to their latest releases.",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "patch"
+				},
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "patch"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "1b7d62ce3ed1628627173340850d0bed6a5b9690",
+						"short_sha": "1b7d62c",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/1b7d62ce3ed1628627173340850d0bed6a5b9690",
+						"authored_at": "2026-10-16T21:22:49+01:00",
+						"committed_at": "2026-10-16T21:22:49+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#69",
+						"title": "fix: verify sign-in resources, repair broken doctests, refresh dependencies",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/69",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "1b7d62ce3ed1628627173340850d0bed6a5b9690",
+						"short_sha": "1b7d62c",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/1b7d62ce3ed1628627173340850d0bed6a5b9690",
+						"authored_at": "2026-10-16T21:22:49+01:00",
+						"committed_at": "2026-10-16T21:22:49+01:00",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#69",
+						"title": "fix: verify sign-in resources, repair broken doctests, refresh dependencies",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/69",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		}
+	],
+	"changelogs": [
+		{
+			"owner_id": "core",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "[0.7.2](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.2) (2026-10-16)",
+				"summary": [
+					"Grouped release for `core`."
+				],
+				"sections": [
+					{
+						"title": "Fixes",
+						"collapsed": false,
+						"entries": [
+							"#### Verify sign-in resources and fix broken doctests\n\n_Packages:_ 🟢 _wallet_standard_, 🟢 _wallet_standard_browser_\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #69](https://github.com/pina-rs/wallet_standard/pull/69)\n\n`verify_sign_in` now checks the `Resources:` block of a signed Sign In With Solana statement instead of skipping it, so a wallet that drops a requested resource can no longer pass verification. The signed message is read from the output once and shared by the text check and the signature check instead of crossing the wasm boundary twice, and `create_sign_in_message_text` propagates write failures like the rest of the function rather than `unwrap`ping.\n\nNine doctests that failed to compile are fixed: the readme's Sign In With Solana example imported `Keypair` from the wrong crate and referenced an undefined wallet, its error-handling example called an undefined function, and the seven value illustrations in `types.rs` are now marked `rust,ignore` like the other illustrative snippets. The empty version markers in the root readme are filled in so `mdt check` passes again.\n\nWallet discovery reads the JavaScript `features` object once per compatibility check instead of once per probed feature, and the dependency lockfile plus the pinned cargo tools (cargo-dylint 6.2.0, cargo-nextest 0.9.148, cargo-semver-checks 0.51.0, wasm-bindgen-cli 0.2.129) are refreshed to their latest releases."
+						]
+					},
+					{
+						"title": "Notes",
+						"collapsed": false,
+						"entries": [
+							"#### Classify pull request changes before they reach a release\n\n_Packages:_ ⚪ _wallet_standard_, ⚪ _wallet_standard_browser_\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #49](https://github.com/pina-rs/wallet_standard/pull/49)\n\nAdd a `changeset-policy` workflow that runs two gates on every pull request.\n\nThe changeset policy fails a pull request when changed release-owned paths are not covered by a changeset and posts one remediation comment. It now derives the changed packages from git history with `from: origin/main`, so it also compares each attached changeset bump against the classified change type.\n\nThe change-classification step posts the compatibility evidence for the pull request: public API, dependency, and metadata changes with a proposed bump per package. The report separates the current pull request from everything accumulated since the last release, so a pull request that adds an API is not mistaken for one that breaks it.\n\nClassification runs at `--detection-level semantic` against a cargo-semver-checks matrix covering the default feature set and all features, so a break behind `solana` or `browser` is proven rather than inferred from syntax."
+						]
+					}
+				]
+			},
+			"rendered": "## [0.7.2](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.2) (2026-10-16)\n\nGrouped release for `core`.\n\n### Fixes\n\n#### Verify sign-in resources and fix broken doctests\n\n_Packages:_ 🟢 _wallet_standard_, 🟢 _wallet_standard_browser_\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #69](https://github.com/pina-rs/wallet_standard/pull/69)\n\n`verify_sign_in` now checks the `Resources:` block of a signed Sign In With Solana statement instead of skipping it, so a wallet that drops a requested resource can no longer pass verification. The signed message is read from the output once and shared by the text check and the signature check instead of crossing the wasm boundary twice, and `create_sign_in_message_text` propagates write failures like the rest of the function rather than `unwrap`ping.\n\nNine doctests that failed to compile are fixed: the readme's Sign In With Solana example imported `Keypair` from the wrong crate and referenced an undefined wallet, its error-handling example called an undefined function, and the seven value illustrations in `types.rs` are now marked `rust,ignore` like the other illustrative snippets. The empty version markers in the root readme are filled in so `mdt check` passes again.\n\nWallet discovery reads the JavaScript `features` object once per compatibility check instead of once per probed feature, and the dependency lockfile plus the pinned cargo tools (cargo-dylint 6.2.0, cargo-nextest 0.9.148, cargo-semver-checks 0.51.0, wasm-bindgen-cli 0.2.129) are refreshed to their latest releases.\n\n### Notes\n\n#### Classify pull request changes before they reach a release\n\n_Packages:_ ⚪ _wallet_standard_, ⚪ _wallet_standard_browser_\n\n_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #49](https://github.com/pina-rs/wallet_standard/pull/49)\n\nAdd a `changeset-policy` workflow that runs two gates on every pull request.\n\nThe changeset policy fails a pull request when changed release-owned paths are not covered by a changeset and posts one remediation comment. It now derives the changed packages from git history with `from: origin/main`, so it also compares each attached changeset bump against the classified change type.\n\nThe change-classification step posts the compatibility evidence for the pull request: public API, dependency, and metadata changes with a proposed bump per package. The report separates the current pull request from everything accumulated since the last release, so a pull request that adds an API is not mistaken for one that breaks it.\n\nClassification runs at `--detection-level semantic` against a cargo-semver-checks matrix covering the default feature set and all features, so a break behind `solana` or `browser` is proven rather than inferred from syntax."
+		}
+	],
+	"provider": {
+		"kind": "github",
+		"owner": "pina-rs",
+		"repo": "wallet_standard",
+		"host": null
+	}
+}
