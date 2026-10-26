@@ -16,8 +16,8 @@ This repository contains Rust crates that implement the Wallet Standard for Sola
 
 | Crate                     | Version                                                                                 | Description                                                     |
 | ------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `wallet_standard`         | <!-- {~core-v:"{{ cargo.workspace.package.version }}"} -->0.7.3<!-- {/core-v} -->       | Core implementation of the wallet standard interface for Solana |
-| `wallet_standard_browser` | <!-- {~browser-v:"{{ cargo.workspace.package.version }}"} -->0.7.3<!-- {/browser-v} --> | Browser-specific implementation of the wallet standard          |
+| `wallet_standard`         | <!-- {~core-v:"{{ cargo.workspace.package.version }}"} -->0.7.4<!-- {/core-v} -->       | Core implementation of the wallet standard interface for Solana |
+| `wallet_standard_browser` | <!-- {~browser-v:"{{ cargo.workspace.package.version }}"} -->0.7.4<!-- {/browser-v} --> | Browser-specific implementation of the wallet standard          |
 
 ### Crate Details
 
