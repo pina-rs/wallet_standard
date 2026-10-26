@@ -611,7 +611,7 @@ pub fn snapshot_reads_each_property_exactly_once() {
 	for key in ["version", "name", "icon", "chains", "features", "accounts"] {
 		assert_eq!(
 			read_count(&counts, key),
-			if key == "accounts" { 0 } else { 1 },
+			i32::from(key != "accounts"),
 			"repeated snapshot reads must not re-read `{key}`"
 		);
 	}
@@ -759,4 +759,246 @@ pub fn supported_transaction_versions_accept_the_standard_set_only() {
 		feature.supported_transaction_versions(),
 		Err(wallet_standard::WalletError::Serde(_))
 	));
+}
+
+// --- Subscription and stream tests -------------------------------------------
+//
+// The registry's listener list is unbounded and `standard:events` is an
+// ordinary listener list, so subscriptions must multiply and detach
+// cleanly. These tests also replace the stale "only supports one wallet at
+// a time" claim the old `on_register` API carried.
+
+use std::cell::Cell;
+use std::rc::Rc;
+
+use futures::StreamExt;
+use wallet_standard_browser::Subscription;
+
+/// Both register subscriptions observe the same registration, and dropping
+/// one detaches only that listener.
+#[wasm_bindgen_test]
+pub fn register_subscriptions_are_independent() {
+	let wallets = wallet_standard_browser::get_wallets();
+	let first = Rc::new(Cell::new(0));
+	let second = Rc::new(Cell::new(0));
+
+	let first_subscription = wallets.on_register_with({
+		let first = first.clone();
+		move |_| {
+			first.set(first.get() + 1);
+		}
+	});
+	let _second_subscription = wallets.on_register_with({
+		let second = second.clone();
+		move |_| {
+			second.set(second.get() + 1);
+		}
+	});
+
+	let info = mock_wallet(
+		"MultiListenerMock",
+		&[("standard:connect", connect_feature())],
+	);
+	let dispose = wallets
+		.try_register(&[info])
+		.expect("registering a well-formed wallet succeeds");
+
+	assert_eq!(first.get(), 1, "the first listener fires");
+	assert_eq!(second.get(), 1, "the second listener fires");
+
+	drop(first_subscription);
+
+	let info = mock_wallet(
+		"MultiListenerMock2",
+		&[("standard:connect", connect_feature())],
+	);
+	let dispose2 = wallets
+		.try_register(&[info])
+		.expect("registering a well-formed wallet succeeds");
+
+	assert_eq!(first.get(), 1, "a dropped subscription stops firing");
+	assert_eq!(second.get(), 2, "a surviving subscription keeps firing");
+
+	dispose();
+	dispose2();
+}
+
+/// The registry watch starts from the current list and re-emits it after
+/// every registration and unregistration.
+#[wasm_bindgen_test]
+pub fn watch_wallets_streams_the_registry() {
+	let mut watch = wallet_standard_browser::watch_wallets();
+
+	let initial = futures::executor::block_on(watch.next()).expect("the initial list arrives");
+	assert!(
+		!initial.iter().any(|wallet| wallet.name() == "WatchMock"),
+		"the watcher observes the registry as it stands"
+	);
+
+	let wallets = wallet_standard_browser::get_wallets();
+	let info = mock_wallet("WatchMock", &[("standard:connect", connect_feature())]);
+	let dispose = wallets
+		.try_register(&[info])
+		.expect("registering a well-formed wallet succeeds");
+
+	let after_register =
+		futures::executor::block_on(watch.next()).expect("the registered list arrives");
+	assert!(
+		after_register
+			.iter()
+			.any(|wallet| wallet.name() == "WatchMock")
+	);
+
+	dispose();
+
+	let after_unregister =
+		futures::executor::block_on(watch.next()).expect("the unregistered list arrives");
+	assert!(
+		!after_unregister
+			.iter()
+			.any(|wallet| wallet.name() == "WatchMock")
+	);
+}
+
+/// A mock `standard:events` feature whose `on` stores listeners on
+/// `globalThis.__changeCbs` exactly the way a real wallet's would, so a
+/// test can fire change notifications at the bridge.
+fn events_feature() -> Object {
+	let feature = Object::new();
+	set(&feature, "version", js_str("1.0.0"));
+	set(
+		&feature,
+		"on",
+		Function::new_no_args(
+			r"var listener = arguments[1];
+			globalThis.__changeCbs = (globalThis.__changeCbs || []).concat([listener]);
+			return function off() {
+				globalThis.__changeCbs = globalThis.__changeCbs.filter(function (existing) {
+					return existing !== listener;
+				});
+			};",
+		),
+	);
+	feature
+}
+
+/// Clears the listeners the [`events_feature`] mock installed.
+fn reset_change_callbacks() {
+	js_sys::eval("globalThis.__changeCbs = [];").expect("reset evaluates");
+}
+
+/// Fires one change notification at every stored listener.
+fn dispatch_change(properties: &Object) {
+	Function::new_no_args(
+		r"var properties = arguments[0];
+		globalThis.__changeCbs.forEach(function (listener) {
+			listener(properties);
+		});",
+	)
+	.call1(&JsValue::UNDEFINED, properties.as_ref())
+	.expect("dispatching to stored listeners never fails");
+}
+
+/// Change properties carrying the given accounts.
+fn change_with_accounts(accounts: Array) -> Object {
+	let properties = Object::new();
+	set(&properties, "accounts", accounts);
+	properties
+}
+
+/// The account stream emits the wallet's new first account, `None` for an
+/// empty account list, and nothing for changes that leave the accounts
+/// untouched.
+#[wasm_bindgen_test]
+pub fn account_changes_follows_change_notifications() {
+	reset_change_callbacks();
+
+	let info = mock_wallet("ChangeMock", &[("standard:events", events_feature())]);
+	let wallet = BrowserWallet::from(info);
+	let mut changes = wallet
+		.account_changes()
+		.expect("the wallet implements standard:events");
+
+	// No item exists before any notification; a pending poll proves the
+	// stream is silent rather than just slow.
+	let mut context = std::task::Context::from_waker(std::task::Waker::noop());
+	assert!(changes.poll_next_unpin(&mut context).is_pending());
+
+	let accounts = Array::new();
+	accounts.push(mock_account().unchecked_ref());
+	dispatch_change(&change_with_accounts(accounts));
+
+	let account = futures::executor::block_on(changes.next())
+		.expect("an accounts change produces an item")
+		.expect("the new account list is non-empty");
+	assert_eq!(
+		account.address(),
+		"4acVT7jfykgHZNunZYEwg1NNCUnvuXwFH292ebEGnN4g"
+	);
+
+	dispatch_change(&change_with_accounts(Array::new()));
+
+	let empty =
+		futures::executor::block_on(changes.next()).expect("an accounts change produces an item");
+	assert!(empty.is_none(), "an empty account list reports no account");
+
+	// A chains-only change must not produce an item.
+	let properties = Object::new();
+	let chains = Array::new();
+	chains.push(&js_str("solana:testnet"));
+	set(&properties, "chains", chains);
+	dispatch_change(&properties);
+	assert!(
+		changes.poll_next_unpin(&mut context).is_pending(),
+		"changes without the accounts property stay silent"
+	);
+
+	// Dropping the stream unsubscribes its listener.
+	drop(changes);
+	let stored = js_sys::eval("globalThis.__changeCbs.length")
+		.expect("length evaluates")
+		.as_f64();
+	assert_eq!(
+		stored,
+		Some(0.0),
+		"dropping the stream detaches its listener"
+	);
+
+	reset_change_callbacks();
+}
+
+/// The raw change subscription hands the wallet's properties to the
+/// callback as reported, including non-account changes.
+#[wasm_bindgen_test]
+pub fn on_change_with_receives_the_raw_properties() {
+	reset_change_callbacks();
+
+	let seen = Rc::new(Cell::new(false));
+	let info = mock_wallet("RawChangeMock", &[("standard:events", events_feature())]);
+	let wallet = BrowserWallet::from(info);
+
+	let subscription: Subscription = wallet
+		.on_change_with({
+			let seen = seen.clone();
+			move |_| {
+				seen.set(true);
+			}
+		})
+		.expect("the wallet implements standard:events");
+
+	let properties = Object::new();
+	let chains = Array::new();
+	chains.push(&js_str("solana:testnet"));
+	set(&properties, "chains", chains);
+	dispatch_change(&properties);
+
+	assert!(seen.get(), "the callback runs for a chains-only change");
+
+	drop(subscription);
+	let stored = js_sys::eval("globalThis.__changeCbs.length")
+		.expect("length evaluates")
+		.as_f64();
+	assert_eq!(stored, Some(0.0), "dropping the subscription detaches it");
+
+	reset_change_callbacks();
 }
