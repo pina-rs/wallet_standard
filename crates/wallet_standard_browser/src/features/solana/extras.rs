@@ -18,12 +18,12 @@ impl BrowserWalletInfo {
 	/// Apps with Solana-only requirements use this as their single
 	/// admission check when filtering the registry.
 	pub fn is_solana_standard_compatible(&self) -> bool {
-		// `is_standard_compatible` reads the feature map once for the
-		// standard trio; this reads it once more for the Solana trio,
-		// instead of one JavaScript getter call per probed feature.
+		// One read of the feature map feeds all six probes; going through
+		// the public `is_standard_compatible` would re-enter JavaScript for
+		// the same object, and discovery runs this per registered wallet.
 		let features = self.features_object();
 
-		self.is_standard_compatible()
+		Self::standard_features_present(&features)
 			&& SolanaSignMessageFeature::feature_from_js_object(&features).is_some()
 			&& SolanaSignTransactionFeature::feature_from_js_object(&features).is_some()
 			&& SolanaSignAndSendTransactionFeature::feature_from_js_object(&features).is_some()

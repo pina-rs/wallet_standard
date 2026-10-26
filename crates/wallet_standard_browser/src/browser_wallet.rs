@@ -29,6 +29,13 @@ impl Wallet for BrowserWallet {
 	fn wallet_account(&self) -> Option<Self::Account> {
 		self.wallet_account.clone()
 	}
+
+	// `connected` runs from render loops and signal recomputes, so it checks
+	// the field instead of going through `wallet_account`, which clones the
+	// account handle on every call.
+	fn connected(&self) -> bool {
+		self.wallet_account.is_some()
+	}
 }
 
 impl From<BrowserWalletInfo> for BrowserWallet {

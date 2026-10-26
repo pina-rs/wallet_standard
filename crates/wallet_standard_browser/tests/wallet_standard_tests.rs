@@ -493,3 +493,270 @@ fn unsigned_transfer_props() -> wallet_standard::SolanaSignAndSendTransactionPro
 		.transaction(transaction)
 		.build()
 }
+
+// --- JavaScript boundary-crossing budget tests
+// --------------------------------
+//
+// Every accessor on `BrowserWalletInfo` is a JavaScript boundary crossing,
+// and the number of crossings is the deterministic performance contract for
+// the bridge's hot paths: timing assertions flake in CI, counted getter
+// reads do not. Each test here pins the exact read count of a hot path, so
+// a refactor that quietly doubles the crossings fails CI instead of
+// shipping.
+
+/// Installs a getter on `target` that counts every read into `counts[key]`
+/// and returns `value`.
+fn counting_getter(target: &Object, counts: &Object, key: &str, value: &JsValue) {
+	let args = Array::new();
+	args.push(target);
+	args.push(counts);
+	args.push(&js_str(key));
+	args.push(value);
+
+	js_sys::eval(
+		r"(target, counts, key, value) => {
+			Object.defineProperty(target, key, {
+				get() {
+					counts[key] = (counts[key] || 0) + 1;
+					return value;
+				},
+			});
+		}",
+	)
+	.expect("helper evaluates")
+	.dyn_into::<Function>()
+	.expect("helper is a function")
+	.apply(&JsValue::UNDEFINED, &args)
+	.expect("installing a counting getter never fails");
+}
+
+/// How many times the counting getters installed by [`counting_getter`]
+/// have been read for `key`.
+fn read_count(counts: &Object, key: &str) -> i32 {
+	Reflect::get(counts.as_ref(), &js_str(key))
+		.expect("count key exists")
+		.as_f64()
+		.unwrap_or_default() as i32
+}
+
+/// A mock wallet whose properties are counting getters, so a test can
+/// assert exactly how many times the bridge reads each one.
+fn counting_wallet(name: &str, features: &[(&str, Object)]) -> (BrowserWalletInfo, Object) {
+	let wallet = Object::new();
+	let counts = Object::new();
+
+	let features_object = Object::new();
+	for (feature_name, feature) in features {
+		set(&features_object, feature_name, feature.clone());
+	}
+
+	let chains = Array::new();
+	chains.push(&js_str("solana:mainnet"));
+
+	counting_getter(&wallet, &counts, "version", &js_str("1.1.0"));
+	counting_getter(&wallet, &counts, "name", &js_str(name));
+	counting_getter(
+		&wallet,
+		&counts,
+		"icon",
+		&js_str("data:image/svg+xml;base64,PHN2Zy8+"),
+	);
+	counting_getter(&wallet, &counts, "chains", &chains.into());
+	counting_getter(&wallet, &counts, "features", &features_object.into());
+	counting_getter(&wallet, &counts, "accounts", &Array::new().into());
+
+	(wallet.unchecked_into(), counts)
+}
+
+fn assert_all_read_counts(counts: &Object, expected: i32) {
+	for key in ["version", "name", "icon", "chains", "features", "accounts"] {
+		assert_eq!(
+			read_count(counts, key),
+			expected,
+			"the `{key}` property must be read exactly {expected} time(s)"
+		);
+	}
+}
+
+/// `snapshot` reads each wallet metadata property exactly once and leaves
+/// `accounts` untouched — accounts are snapshotted individually through
+/// `BrowserWalletAccountInfo::snapshot`; afterwards the snapshot answers
+/// any number of reads without touching JavaScript again.
+#[wasm_bindgen_test]
+pub fn snapshot_reads_each_property_exactly_once() {
+	let (info, counts) = counting_wallet("SnapshotMock", &[]);
+
+	let snapshot = info.snapshot();
+	for key in ["version", "name", "icon", "chains", "features"] {
+		assert_eq!(
+			read_count(&counts, key),
+			1,
+			"the `{key}` property must be read exactly once"
+		);
+	}
+	assert_eq!(
+		read_count(&counts, "accounts"),
+		0,
+		"wallet snapshots do not read the accounts property"
+	);
+
+	assert_eq!(snapshot.name, "SnapshotMock");
+	assert_eq!(snapshot.version, "1.1.0");
+	assert_eq!(snapshot.chains, vec!["solana:mainnet"]);
+	assert!(snapshot.features.is_empty());
+
+	// Repeated reads of the snapshot must not re-cross the boundary.
+	let _ = format!("{snapshot:?}");
+	assert_eq!(snapshot, snapshot.clone());
+	for key in ["version", "name", "icon", "chains", "features", "accounts"] {
+		assert_eq!(
+			read_count(&counts, key),
+			if key == "accounts" { 0 } else { 1 },
+			"repeated snapshot reads must not re-read `{key}`"
+		);
+	}
+}
+
+/// `connected` is on per-frame paths and must not read JavaScript at all.
+#[wasm_bindgen_test]
+pub fn connected_never_reads_javascript() {
+	let (info, counts) = counting_wallet("ConnectedMock", &[]);
+
+	let disconnected = BrowserWallet::from(info.clone());
+	assert!(!disconnected.connected());
+
+	let connected = BrowserWallet::builder()
+		.wallet(info)
+		.wallet_account(mock_account())
+		.build();
+	assert!(connected.connected());
+
+	assert_all_read_counts(&counts, 0);
+}
+
+/// Compatibility checks read the wallet's feature map once, no matter how
+/// many features they probe.
+#[wasm_bindgen_test]
+pub fn is_standard_compatible_reads_the_feature_map_once() {
+	let (info, counts) = counting_wallet(
+		"StandardMock",
+		&[
+			("standard:connect", connect_feature()),
+			(
+				"standard:disconnect",
+				mock_feature("1.0.0", &[("disconnect", "return Promise.resolve();")]),
+			),
+			(
+				"standard:events",
+				mock_feature("1.0.0", &[("on", "return function () {};")]),
+			),
+		],
+	);
+
+	assert!(info.is_standard_compatible());
+	assert_eq!(read_count(&counts, "features"), 1);
+}
+
+#[cfg(feature = "solana")]
+/// The Solana admission check shares the standard check's single feature
+/// map read instead of paying for a second one.
+#[wasm_bindgen_test]
+pub fn is_solana_standard_compatible_reads_the_feature_map_once() {
+	let sign_message = mock_feature(
+		"1.0.0",
+		&[(
+			"signMessage",
+			r"return Promise.resolve([{
+				signedMessage: new Uint8Array([1]),
+				signature: new Uint8Array(64),
+			}]);",
+		)],
+	);
+	let sign_transaction = mock_feature(
+		"1.0.0",
+		&[
+			("supportedTransactionVersions", r#"["legacy", 0]"#),
+			(
+				"signTransaction",
+				"return Promise.resolve([{ signedTransaction: new Uint8Array([1]) }]);",
+			),
+		],
+	);
+	let sign_and_send = mock_feature(
+		"1.0.0",
+		&[
+			("supportedTransactionVersions", r#"["legacy", 0]"#),
+			(
+				"signAndSendTransaction",
+				"return Promise.resolve([{ signature: new Uint8Array(64) }]);",
+			),
+		],
+	);
+
+	let (info, counts) = counting_wallet(
+		"SolanaMock",
+		&[
+			("standard:connect", connect_feature()),
+			(
+				"standard:disconnect",
+				mock_feature("1.0.0", &[("disconnect", "return Promise.resolve();")]),
+			),
+			(
+				"standard:events",
+				mock_feature("1.0.0", &[("on", "return function () {};")]),
+			),
+			("solana:signMessage", sign_message),
+			("solana:signTransaction", sign_transaction),
+			("solana:signAndSendTransaction", sign_and_send),
+		],
+	);
+
+	assert!(info.is_solana_standard_compatible());
+	assert_eq!(read_count(&counts, "features"), 1);
+}
+
+#[cfg(feature = "solana")]
+/// The advertised version set is `legacy`, `0`, and `1`: anything else is
+/// rejected instead of being accepted as an open-ended SDK enum value.
+#[wasm_bindgen_test]
+pub fn supported_transaction_versions_accept_the_standard_set_only() {
+	use solana_transaction::versioned::Legacy;
+	use solana_transaction::versioned::TransactionVersion;
+	use wallet_standard_browser::SolanaSignTransactionFeature;
+
+	let standard_set = mock_feature(
+		"1.0.0",
+		&[("supportedTransactionVersions", r#"["legacy", 0, 1]"#)],
+	);
+	let feature: SolanaSignTransactionFeature = standard_set.unchecked_into();
+
+	assert_eq!(
+		feature
+			.supported_transaction_versions()
+			.expect("standard set"),
+		vec![
+			TransactionVersion::Legacy(Legacy::Legacy),
+			TransactionVersion::Number(0),
+			TransactionVersion::Number(1),
+		]
+	);
+
+	let future_version = mock_feature("1.0.0", &[("supportedTransactionVersions", r"[0, 99]")]);
+	let feature: SolanaSignTransactionFeature = future_version.unchecked_into();
+
+	assert_eq!(
+		feature.supported_transaction_versions(),
+		Err(wallet_standard::WalletError::UnsupportedTransactionVersion)
+	);
+
+	let nonsense = mock_feature(
+		"1.0.0",
+		&[("supportedTransactionVersions", r#"["nonsense"]"#)],
+	);
+	let feature: SolanaSignTransactionFeature = nonsense.unchecked_into();
+
+	assert!(matches!(
+		feature.supported_transaction_versions(),
+		Err(wallet_standard::WalletError::Serde(_))
+	));
+}

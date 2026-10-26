@@ -84,14 +84,21 @@ impl SolanaSignTransactionOutput for BrowserSolanaSignTransactionOutput {
 impl SolanaSignTransactionFeature {
 	/// The transaction versions this wallet will sign.
 	///
-	/// Checked before any signing call so the app can fail fast instead
-	/// of handing the wallet a transaction it must refuse after showing
-	/// the user a prompt.
+	/// Checked before any signing call so the app can fail fast instead of
+	/// handing the wallet a transaction it must refuse after showing the
+	/// user a prompt.
+	///
+	/// The standard defines `"legacy"`, `0`, and `1` — version `1` being the
+	/// v1 transaction format (SIMD-0296 / SIMD-0385). The SDK's
+	/// `TransactionVersion` is an open enum, so values outside that set are
+	/// rejected here instead of being accepted and later miscompared against
+	/// versions this crate cannot construct.
 	///
 	/// # Errors
 	///
-	/// Returns [`WalletError::Serde`] when the wallet advertises a version
-	/// value this crate does not understand.
+	/// Returns [`WalletError::Serde`] when a value cannot be deserialized
+	/// and [`WalletError::UnsupportedTransactionVersion`] when the wallet
+	/// advertises a version outside the standard's set.
 	pub fn supported_transaction_versions(&self) -> WalletResult<Vec<TransactionVersion>> {
 		let array = self._supported_transaction_versions();
 
@@ -99,6 +106,13 @@ impl SolanaSignTransactionFeature {
 			.iter()
 			.map(|value| {
 				let version: TransactionVersion = serde_wasm_bindgen::from_value(value)?;
+
+				if let TransactionVersion::Number(number) = version
+					&& number > 1
+				{
+					return Err(WalletError::UnsupportedTransactionVersion);
+				}
+
 				Ok(version)
 			})
 			.collect::<WalletResult<Vec<_>>>()
