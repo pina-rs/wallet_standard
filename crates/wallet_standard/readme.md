@@ -27,10 +27,10 @@ Or directly add the following to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Core protocol traits (required)
-wallet_standard = "0.7.2"
+wallet_standard = "0.7.3"
 
 # Browser/WASM integration (only for wasm32 targets)
-wallet_standard_browser = "0.7.2"
+wallet_standard_browser = "0.7.3"
 ```
 
 <!-- {/install_deps} -->
