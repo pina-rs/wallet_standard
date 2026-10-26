@@ -35,6 +35,27 @@ pub mod prelude {
 	pub use super::solana::prelude::*;
 }
 
+#[cfg(test)]
+mod error_tests {
+	use super::*;
+
+	#[test]
+	fn connection_state_errors_group_under_is_connection_error() {
+		assert!(WalletError::WalletAccount.is_connection_error());
+		assert!(WalletError::WalletConnection.is_connection_error());
+		assert!(WalletError::WalletNotConnected.is_connection_error());
+		assert!(WalletError::WalletDisconnected.is_connection_error());
+	}
+
+	#[test]
+	fn operation_failures_are_not_connection_errors() {
+		assert!(!WalletError::InvalidArguments.is_connection_error());
+		assert!(!WalletError::WalletDisconnection.is_connection_error());
+		assert!(!WalletError::WalletTimeout.is_connection_error());
+		assert!(!WalletError::External("provider".to_string()).is_connection_error());
+	}
+}
+
 #[cfg(feature = "solana")]
 #[cfg(test)]
 mod tests {

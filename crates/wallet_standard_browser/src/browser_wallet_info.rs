@@ -296,9 +296,16 @@ impl BrowserWalletInfo {
 		// fetch the same map, and discovery runs this per registered wallet.
 		let features = self.features_object();
 
-		StandardConnectFeature::feature_from_js_object(&features).is_some()
-			&& StandardEventsFeature::feature_from_js_object(&features).is_some()
-			&& StandardDisconnectFeature::feature_from_js_object(&features).is_some()
+		Self::standard_features_present(&features)
+	}
+
+	/// The standard-features half of compatibility, evaluated against an
+	/// already-read feature map so composite checks share one JavaScript
+	/// getter call instead of one per probed feature.
+	pub(crate) fn standard_features_present(features: &Object) -> bool {
+		StandardConnectFeature::feature_from_js_object(features).is_some()
+			&& StandardEventsFeature::feature_from_js_object(features).is_some()
+			&& StandardDisconnectFeature::feature_from_js_object(features).is_some()
 	}
 }
 

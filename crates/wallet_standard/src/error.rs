@@ -148,6 +148,34 @@ pub enum WalletError {
 	External(String),
 }
 
+impl WalletError {
+	/// Whether this error reports the wallet's connection state rather than
+	/// the operation the app attempted.
+	///
+	/// Four variants describe adjacent connection failures: no account
+	/// attached ([`WalletError::WalletAccount`]), a failed connect handshake
+	/// ([`WalletError::WalletConnection`]), a required connection missing
+	/// ([`WalletError::WalletNotConnected`]), and an action refused because
+	/// the wallet is disconnected
+	/// ([`WalletError::WalletDisconnected`]). Wallets report them precisely,
+	/// while apps almost always want the same response for all four: prompt
+	/// the user to connect. This predicate groups them so apps match once
+	/// instead of four times.
+	///
+	/// [`WalletError::WalletDisconnection`] is deliberately excluded: it
+	/// reports that the disconnect call itself failed, not that the app is
+	/// missing a connection.
+	pub fn is_connection_error(&self) -> bool {
+		matches!(
+			self,
+			WalletError::WalletAccount
+				| WalletError::WalletConnection
+				| WalletError::WalletNotConnected
+				| WalletError::WalletDisconnected
+		)
+	}
+}
+
 impl From<core::fmt::Error> for WalletError {
 	fn from(value: core::fmt::Error) -> Self {
 		WalletError::ParseString(value.to_string())

@@ -5,6 +5,7 @@ pub use browser_wallet::*;
 pub use browser_wallet_info::*;
 pub use constants::*;
 pub use features::*;
+pub use snapshot::*;
 pub use types::*;
 pub use wallet_standard::*;
 
@@ -12,6 +13,7 @@ mod browser_wallet;
 mod browser_wallet_info;
 mod constants;
 mod features;
+mod snapshot;
 mod types;
 
 /// Everything a browser dApp or wallet implementation needs in one glob
