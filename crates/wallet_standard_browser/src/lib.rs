@@ -22,7 +22,5 @@ mod types;
 pub mod prelude {
 	pub use wallet_standard::prelude::*;
 
-	pub use super::BrowserWalletAccountInfoSnapshot;
-	pub use super::BrowserWalletInfoSnapshot;
 	pub use super::FeatureFromJs;
 }
