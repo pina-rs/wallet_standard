@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.3](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.3) (2026-10-26)
+
+Grouped release for `core`.
+
+### Features
+
+#### Cut JS boundary crossings and add perf gates
+
+_Packages:_ 🟠 _wallet_standard_, 🟠 _wallet_standard_browser_
+
+_Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #78](https://github.com/pina-rs/wallet_standard/pull/78)
+
+`BrowserWalletInfoSnapshot` and `BrowserWalletAccountInfoSnapshot` read every JavaScript property once into plain Rust values, so repeated reads, comparisons, and hashing stay on the Rust side of the boundary, and `BrowserWallet::connected` checks the stored account without cloning the handle. `is_solana_standard_compatible` shares one feature-map read with the standard check instead of re-entering JavaScript.
+
+`supported_transaction_versions` now accepts the standard's set — `legacy`, `0`, and `1` (v1 per SIMD-0296 / SIMD-0385) — and rejects values outside it instead of accepting any `u8`. `WalletError::is_connection_error` groups the four connection-state failures so apps match once instead of four times.
+
+Counted boundary-crossing tests pin exact JavaScript read counts for the hot paths, and a `perf` CI job gates the wasm binary size of a linking probe against a committed budget.
+
 ## [0.7.2](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.2) (2026-10-16)
 
 Grouped release for `core`.
