@@ -8,6 +8,7 @@
 
 use std::cell::RefCell;
 
+use futures::StreamExt;
 use leptos::prelude::*;
 use solana_message::Hash;
 use solana_pubkey::Pubkey;
@@ -231,6 +232,37 @@ async fn wallet_send_flow(
 	busy.set(false);
 }
 
+/// Follow the wallet's own account changes through `standard:events`, so
+/// the account the UI shows is always the account the wallet will sign
+/// with — including changes made inside the wallet, outside this page's
+/// connect and disconnect buttons.
+fn spawn_account_watch(
+	wallet: &BrowserWallet,
+	account_address: RwSignal<String>,
+	balance: RwSignal<Option<u64>>,
+	log: RwSignal<Vec<String>>,
+) -> wallet_standard::WalletResult<()> {
+	let mut changes = wallet.account_changes()?;
+
+	wasm_bindgen_futures::spawn_local(async move {
+		while let Some(account) = changes.next().await {
+			match account {
+				Some(account) => {
+					account_address.set(account.address());
+					append_log(&log, "wallet reported a new account");
+				}
+				None => {
+					account_address.set(String::new());
+					balance.set(None);
+					append_log(&log, "wallet reported no accounts");
+				}
+			}
+		}
+	});
+
+	Ok(())
+}
+
 #[component]
 fn App() -> impl IntoView {
 	console_error_panic_hook::set_once();
@@ -256,9 +288,13 @@ fn App() -> impl IntoView {
 
 	match dev_wallet::discover_dev_wallet() {
 		Some(wallet) => {
-			SESSION.with(|session| *session.borrow_mut() = Some(wallet));
+			SESSION.with(|session| *session.borrow_mut() = Some(wallet.clone()));
 			wallet_status.set(format!("detected: {}", dev_wallet::DEV_WALLET_NAME));
 			append_log(&log, "dev wallet registered and discovered");
+
+			if let Err(error) = spawn_account_watch(&wallet, account_address, balance, log) {
+				append_log(&log, format!("account watch failed: {error}"));
+			}
 		}
 		None => wallet_status.set("no Wallet Standard wallet detected".to_string()),
 	}

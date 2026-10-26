@@ -487,24 +487,34 @@ impl WalletAccountInfo for BrowserWalletAccountInfo {
 }
 
 impl Wallets {
-	/// Currently only supports one wallet at a time.
-	/// <https://github.com/rustwasm/wasm-bindgen/issues/3715>
-	pub fn on_register(&self, callback: &Closure<dyn Fn(BrowserWalletInfo)>) -> Box<dyn Fn()> {
-		let dispose = self.on("register", callback);
+	/// Listen for wallets registering with the page, keeping the listener
+	/// alive until the returned [`Subscription`] is dropped.
+	///
+	/// The registry's listener list is unbounded, so any number of
+	/// subscriptions can observe registrations at once.
+	pub fn on_register_with(
+		&self,
+		callback: impl Fn(BrowserWalletInfo) + 'static,
+	) -> crate::Subscription {
+		let closure = Closure::wrap(Box::new(callback) as Box<dyn Fn(BrowserWalletInfo)>);
+		let dispose = self.on("register", &closure);
 
-		Box::new(move || {
-			let _ = dispose.call0(&JsValue::NULL);
-		})
+		crate::Subscription::new(Box::new(closure), dispose)
 	}
 
-	/// Currently only supports one wallet at a time.
-	/// <https://github.com/rustwasm/wasm-bindgen/issues/3715>
-	pub fn on_unregister(&self, callback: &Closure<dyn Fn(BrowserWalletInfo)>) -> Box<dyn Fn()> {
-		let dispose = self.on("unregister", callback);
+	/// Listen for wallets unregistering from the page, keeping the listener
+	/// alive until the returned [`Subscription`] is dropped.
+	///
+	/// The registry's listener list is unbounded, so any number of
+	/// subscriptions can observe unregistrations at once.
+	pub fn on_unregister_with(
+		&self,
+		callback: impl Fn(BrowserWalletInfo) + 'static,
+	) -> crate::Subscription {
+		let closure = Closure::wrap(Box::new(callback) as Box<dyn Fn(BrowserWalletInfo)>);
+		let dispose = self.on("unregister", &closure);
 
-		Box::new(move || {
-			let _ = dispose.call0(&JsValue::NULL);
-		})
+		crate::Subscription::new(Box::new(closure), dispose)
 	}
 
 	/// Register Wallets, panicking if the page's registry rejects them.
