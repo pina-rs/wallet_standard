@@ -1573,7 +1573,7 @@ dependencies = [
 
 [[package]]
 name = "wallet_standard"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "async-trait",
  "bincode",
@@ -1601,7 +1601,7 @@ dependencies = [
 
 [[package]]
 name = "wallet_standard_browser"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "async-trait",
  "bincode",

@@ -1,0 +1,213 @@
+{
+	"schema_version": "0.10",
+	"kind": "monochange.releaseRecord",
+	"created_at": "2026-10-26T14:44:03Z",
+	"command": "release",
+	"version": "0.7.4",
+	"versions": {
+		"core": "0.7.4"
+	},
+	"release_targets": [
+		{
+			"id": "core",
+			"kind": "group",
+			"version": "0.7.4",
+			"version_format": "primary",
+			"tag": true,
+			"release": true,
+			"tag_name": "v0.7.4",
+			"rendered_title": "v0.7.4 (2026-10-26)",
+			"rendered_changelog_title": "[0.7.4](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.4) (2026-10-26)",
+			"members": [
+				"wallet_standard",
+				"wallet_standard_browser"
+			]
+		}
+	],
+	"released_packages": [
+		"wallet_standard",
+		"wallet_standard_browser"
+	],
+	"changed_files": [
+		"Cargo.lock",
+		"Cargo.toml",
+		"changelog.md",
+		"crates/wallet_standard/Cargo.toml",
+		"crates/wallet_standard_browser/Cargo.toml"
+	],
+	"package_publications": [
+		{
+			"package": "wallet_standard",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.4",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "wallet_standard_browser",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.4",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		}
+	],
+	"updated_changelogs": [
+		"changelog.md"
+	],
+	"deleted_changesets": [
+		".changeset/subscription-guards-and-streams.md"
+	],
+	"changesets": [
+		{
+			"path": ".changeset/subscription-guards-and-streams.md",
+			"summary": "Add subscription guards and wallet-following streams",
+			"details": "`Subscription` owns a listener closure and its unsubscribe function and detaches on drop, replacing the `on_register` / `on_unregister` API whose closure and dispose handle could drift apart into a leaked listener or a silently dead one. `BrowserWallet::account_changes` streams the wallet's account changes through `standard:events` so apps stop going stale when the user switches accounts inside the wallet, `BrowserWallet::on_change_with` exposes the raw change notifications, and `watch_wallets` streams the page's wallet registry including late registrations. The leptos example follows account changes through the stream.",
+			"targets": [
+				{
+					"id": "wallet_standard_browser",
+					"kind": "package",
+					"bump": "minor",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "minor"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "f86042a47606524dc33ee7105a6bf9faf41f700c",
+						"short_sha": "f86042a",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/f86042a47606524dc33ee7105a6bf9faf41f700c",
+						"authored_at": "2026-10-26T14:32:29Z",
+						"committed_at": "2026-10-26T14:32:29Z",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#81",
+						"title": "feat: add subscription guards and wallet-following streams",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/81",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "f86042a47606524dc33ee7105a6bf9faf41f700c",
+						"short_sha": "f86042a",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/f86042a47606524dc33ee7105a6bf9faf41f700c",
+						"authored_at": "2026-10-26T14:32:29Z",
+						"committed_at": "2026-10-26T14:32:29Z",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#81",
+						"title": "feat: add subscription guards and wallet-following streams",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/81",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		}
+	],
+	"changelogs": [
+		{
+			"owner_id": "core",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "[0.7.4](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.4) (2026-10-26)",
+				"summary": [
+					"Grouped release for `core`."
+				],
+				"sections": [
+					{
+						"title": "Features",
+						"collapsed": false,
+						"entries": [
+							"- **Add subscription guards and wallet-following streams.** `Subscription` owns a listener closure and its unsubscribe function and detaches on drop, replacing the `on_register` / `on_unregister` API whose closure and dispose handle could drift apart into a leaked listener or a silently dead one. `BrowserWallet::account_changes` streams the wallet's account changes through `standard:events` so apps stop going stale when the user switches accounts inside the wallet, `BrowserWallet::on_change_with` exposes the raw change notifications, and `watch_wallets` streams the page's wallet registry including late registrations. The leptos example follows account changes through the stream.\n  _Packages:_ 🟠 _wallet_standard_browser_\n  _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #81](https://github.com/pina-rs/wallet_standard/pull/81)"
+						]
+					}
+				]
+			},
+			"rendered": "## [0.7.4](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.4) (2026-10-26)\n\nGrouped release for `core`.\n\n### Features\n\n- **Add subscription guards and wallet-following streams.** `Subscription` owns a listener closure and its unsubscribe function and detaches on drop, replacing the `on_register` / `on_unregister` API whose closure and dispose handle could drift apart into a leaked listener or a silently dead one. `BrowserWallet::account_changes` streams the wallet's account changes through `standard:events` so apps stop going stale when the user switches accounts inside the wallet, `BrowserWallet::on_change_with` exposes the raw change notifications, and `watch_wallets` streams the page's wallet registry including late registrations. The leptos example follows account changes through the stream.\n  _Packages:_ 🟠 _wallet_standard_browser_\n  _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #81](https://github.com/pina-rs/wallet_standard/pull/81)"
+		}
+	],
+	"provider": {
+		"kind": "github",
+		"owner": "pina-rs",
+		"repo": "wallet_standard",
+		"host": null
+	}
+}
