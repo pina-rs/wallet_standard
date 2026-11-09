@@ -51,4 +51,11 @@ The returned account may differ from the requested `address` — the user can al
 
 ## Verifying on the backend
 
-Because the output is a normal `SolanaSignMessageOutput`, backend verification is the same as for plain message signing: recover the pubkey from the Ed25519 signature over the signed message and check it matches the account address, then validate the SIWS fields (domain, nonce, expiry) server-side.
+Call `verify_sign_in`. It parses the signed message with the same rules as `@solana/wallet-standard-util`:
+
+- the bytes must be a SIWS message, not a free-form string that happens to contain the field names
+- each field the app set must match the parsed field, and a field the app left unset must not appear
+- the account address and public key must be the address inside the message
+- the Ed25519 signature must verify over those exact bytes
+
+Searching the signed text for `URI:` or `Resources:` is not enough. A wallet can embed those strings inside a different statement, or after a different domain line, and still satisfy a substring check. `verify_sign_in` rejects that message. Domain and address may be omitted from the input; the wallet fills them in, and verification then checks the account against the message.

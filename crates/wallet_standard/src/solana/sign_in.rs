@@ -116,123 +116,340 @@ pub trait WalletSolanaSignIn {
 	-> WalletResult<Vec<Self::Output>>;
 }
 
-/// Check that the input and output of the sign in are valid.
+/// Check that a Sign In With Solana output matches the input the app sent.
+///
+/// This follows `verifySignIn` from `@solana/wallet-standard-util`. The
+/// signed bytes must parse as a SIWS message, every field the app set must
+/// equal the parsed field, and every field the app left unset must be
+/// absent. The account address and public key must be the address inside
+/// that message, and the Ed25519 signature must verify over those exact
+/// bytes. A message that only embeds the expected fields as substrings —
+/// inside a different statement, or after a different domain — is rejected.
+///
+/// # Errors
+///
+/// Returns [`WalletError::WalletSignIn`] when the message, fields, account,
+/// or signature do not match. Returns [`WalletError::WalletPublicKey`] when
+/// the account public key is not a Solana public key, and
+/// [`WalletError::ParseString`] when the signed bytes are not UTF-8.
 pub fn verify_sign_in(
 	input: &SolanaSignInInput,
 	output: &impl SolanaSignInOutput,
 ) -> WalletResult<()> {
 	let account = output.account();
-
-	let Some(input_address) = input.address.as_ref() else {
-		return Err(WalletError::WalletSignIn);
-	};
-
-	if account.address().as_str() != input_address {
-		return Err(WalletError::WalletSignIn);
-	}
-
 	// `signed_message` crosses the wasm boundary once and feeds both the
 	// text check and the signature check.
 	let signed_message = output.signed_message();
+	let output_text = str::from_utf8(&signed_message)
+		.map_err(|_| WalletError::ParseString("could not parse the signed_message".into()))?;
+	let parsed = parse_sign_in_message_text(output_text).ok_or(WalletError::WalletSignIn)?;
 
-	verify_output_text(input, &signed_message)?;
-
-	let signature = output.try_signature()?;
-	let bytes = account.public_key();
-	let pubkey = Pubkey::try_from(bytes).map_err(|_| WalletError::WalletPublicKey)?;
-
-	if pubkey.to_string().as_str() != input_address {
+	if account.address() != parsed.address {
 		return Err(WalletError::WalletSignIn);
 	}
 
-	if signature.verify(&pubkey.to_bytes(), &signed_message) {
+	require_supplied(input.domain.as_ref(), &parsed.domain)?;
+	require_supplied(input.address.as_ref(), &parsed.address)?;
+	require_exact(input.statement.as_ref(), parsed.statement.as_ref())?;
+	require_exact(input.uri.as_ref(), parsed.uri.as_ref())?;
+	require_exact(input.version.as_ref(), parsed.version.as_ref())?;
+	require_exact(input.chain_id.as_ref(), parsed.chain_id.as_ref())?;
+	require_exact(input.nonce.as_ref(), parsed.nonce.as_ref())?;
+	require_exact(input.issued_at.as_ref(), parsed.issued_at.as_ref())?;
+	require_exact(
+		input.expiration_time.as_ref(),
+		parsed.expiration_time.as_ref(),
+	)?;
+	require_exact(input.not_before.as_ref(), parsed.not_before.as_ref())?;
+	require_exact(input.request_id.as_ref(), parsed.request_id.as_ref())?;
+	require_resources(input.resources.as_ref(), parsed.resources.as_ref())?;
+
+	// Rebuild the message the parser accepted. Anything the grammar allowed
+	// but `create_sign_in_message_text` would not emit — extra trailing
+	// newlines, for example — fails this equality before the signature is
+	// even consulted.
+	let reconstructed = create_sign_in_message_text(&parsed.to_input())?;
+
+	if reconstructed != output_text {
+		return Err(WalletError::WalletSignIn);
+	}
+
+	let signature = output.try_signature()?;
+	let pubkey =
+		Pubkey::try_from(account.public_key()).map_err(|_| WalletError::WalletPublicKey)?;
+
+	if pubkey.to_string() != parsed.address {
+		return Err(WalletError::WalletSignIn);
+	}
+
+	if signature.verify(pubkey.as_ref(), &signed_message) {
 		Ok(())
 	} else {
 		Err(WalletError::WalletSignIn)
 	}
 }
 
-#[allow(unused_assignments)]
-fn verify_output_text(input: &SolanaSignInInput, signed_message: &[u8]) -> WalletResult<()> {
-	let input_text = create_sign_in_message_text(input)?;
-	let output_text = str::from_utf8(signed_message)
-		.map_err(|_| WalletError::ParseString("could not parse the signed_message".into()))?;
+/// A SIWS message parsed the way `@solana/wallet-standard-util` parses it.
+struct ParsedSignIn {
+	domain: String,
+	address: String,
+	statement: Option<String>,
+	uri: Option<String>,
+	version: Option<String>,
+	chain_id: Option<String>,
+	nonce: Option<String>,
+	issued_at: Option<String>,
+	expiration_time: Option<String>,
+	not_before: Option<String>,
+	request_id: Option<String>,
+	resources: Option<Vec<String>>,
+}
 
-	if input_text == output_text {
-		return Ok(());
-	}
-
-	let domain = input
-		.domain
-		.as_ref()
-		.ok_or(WalletError::WalletSignInFields("Domain is required".into()))?;
-	let address = input
-		.address
-		.as_ref()
-		.ok_or(WalletError::WalletSignInFields(
-			"Address is required".into(),
-		))?;
-
-	let Some((_, output_text)) = output_text
-		.split_once(format!("{domain} wants you to sign in with your Solana account:").as_str())
-	else {
-		return Err(WalletError::WalletSignIn);
-	};
-
-	let Some((_, mut output_text)) = output_text.split_once(address) else {
-		return Err(WalletError::WalletSignIn);
-	};
-
-	if let Some(ref statement) = input.statement {
-		let Some((_, remaining)) = output_text.split_once(statement) else {
-			return Err(WalletError::WalletSignIn);
-		};
-
-		output_text = remaining;
-	}
-
-	// Use macros for concise field appending
-	macro_rules! confirm_field_exists {
-		($field:expr, $name:literal) => {
-			if let Some(ref value) = $field {
-				let Some((_, remaining)) =
-					output_text.split_once(format!("{}: {}", $name, value).as_str())
-				else {
-					return Err(WalletError::WalletSignIn);
-				};
-
-				output_text = remaining;
-			}
-		};
-	}
-
-	confirm_field_exists!(input.uri, "URI");
-	confirm_field_exists!(input.version, "Version");
-	confirm_field_exists!(input.chain_id, "Chain ID");
-	confirm_field_exists!(input.nonce, "Nonce");
-	confirm_field_exists!(input.issued_at, "Issued At");
-	confirm_field_exists!(input.expiration_time, "Expiration Time");
-	confirm_field_exists!(input.not_before, "Not Before");
-	confirm_field_exists!(input.request_id, "Request ID");
-
-	if let Some(ref resources) = input.resources {
-		let Some((_, remaining)) = output_text.split_once("Resources:") else {
-			return Err(WalletError::WalletSignIn);
-		};
-
-		output_text = remaining;
-
-		for resource in resources {
-			let Some((_, remaining)) = output_text.split_once(format!("- {resource}").as_str())
-			else {
-				return Err(WalletError::WalletSignIn);
-			};
-
-			output_text = remaining;
+impl ParsedSignIn {
+	fn to_input(&self) -> SolanaSignInInput {
+		SolanaSignInInput {
+			domain: Some(self.domain.clone()),
+			address: Some(self.address.clone()),
+			statement: self.statement.clone(),
+			uri: self.uri.clone(),
+			version: self.version.clone(),
+			chain_id: self.chain_id.clone(),
+			nonce: self.nonce.clone(),
+			issued_at: self.issued_at.clone(),
+			expiration_time: self.expiration_time.clone(),
+			not_before: self.not_before.clone(),
+			request_id: self.request_id.clone(),
+			resources: self.resources.clone(),
 		}
+	}
+}
+
+/// `provided` is optional in the app's input. When the app set it, it must
+/// equal the value the wallet put in the message.
+fn require_supplied(provided: Option<&String>, parsed: &str) -> WalletResult<()> {
+	if let Some(value) = provided
+		&& value != parsed
+	{
+		return Err(WalletError::WalletSignIn);
 	}
 
 	Ok(())
+}
+
+/// An omitted input field must be omitted from the signed message, and a
+/// set field must match exactly. A wallet that invents a statement or a
+/// nonce the app did not send fails here.
+fn require_exact(provided: Option<&String>, parsed: Option<&String>) -> WalletResult<()> {
+	if provided == parsed {
+		Ok(())
+	} else {
+		Err(WalletError::WalletSignIn)
+	}
+}
+
+fn require_resources(
+	provided: Option<&Vec<String>>,
+	parsed: Option<&Vec<String>>,
+) -> WalletResult<()> {
+	if provided == parsed {
+		Ok(())
+	} else {
+		Err(WalletError::WalletSignIn)
+	}
+}
+
+/// Parse a SIWS message.
+///
+/// The shape matches the reference regular expression: a domain line, an
+/// address line, an optional statement, then the optional fields in order.
+/// The statement is the shortest span that still lets the remaining text
+/// parse as those fields, which is what the non-greedy reference pattern
+/// does.
+fn parse_sign_in_message_text(text: &str) -> Option<ParsedSignIn> {
+	let (domain_line, rest) = text.split_once('\n')?;
+	let suffix = " wants you to sign in with your Solana account:";
+	let domain = domain_line.strip_suffix(suffix)?;
+
+	if domain.is_empty() {
+		return None;
+	}
+
+	let (address, body) = match rest.split_once('\n') {
+		Some((address, body)) => (address, body),
+		None => (rest, ""),
+	};
+
+	if address.is_empty() {
+		return None;
+	}
+
+	let (statement, fields) = parse_statement_and_fields(body)?;
+
+	Some(ParsedSignIn {
+		domain: domain.to_owned(),
+		address: address.to_owned(),
+		statement,
+		uri: fields.uri,
+		version: fields.version,
+		chain_id: fields.chain_id,
+		nonce: fields.nonce,
+		issued_at: fields.issued_at,
+		expiration_time: fields.expiration_time,
+		not_before: fields.not_before,
+		request_id: fields.request_id,
+		resources: fields.resources,
+	})
+}
+
+struct SignInFields {
+	uri: Option<String>,
+	version: Option<String>,
+	chain_id: Option<String>,
+	nonce: Option<String>,
+	issued_at: Option<String>,
+	expiration_time: Option<String>,
+	not_before: Option<String>,
+	request_id: Option<String>,
+	resources: Option<Vec<String>>,
+}
+
+fn parse_statement_and_fields(body: &str) -> Option<(Option<String>, SignInFields)> {
+	if let Some(fields) = finish_fields(body) {
+		return Some((None, fields));
+	}
+
+	let rest = body.strip_prefix('\n')?;
+	let mut index = 0;
+
+	loop {
+		if !rest.is_char_boundary(index) {
+			index += 1;
+			continue;
+		}
+
+		let statement = &rest[..index];
+		let after_statement = &rest[index..];
+		let fields = if after_statement.is_empty() {
+			finish_fields("")
+		} else {
+			after_statement.strip_prefix('\n').and_then(finish_fields)
+		};
+
+		if let Some(fields) = fields {
+			return Some((Some(statement.to_owned()), fields));
+		}
+
+		if index == rest.len() {
+			break;
+		}
+
+		index += 1;
+	}
+
+	None
+}
+
+fn finish_fields(input: &str) -> Option<SignInFields> {
+	let (fields, rest) = take_fields(input);
+
+	if rest.bytes().all(|byte| byte == b'\n') {
+		Some(fields)
+	} else {
+		None
+	}
+}
+
+fn take_fields(mut input: &str) -> (SignInFields, &str) {
+	let mut fields = SignInFields {
+		uri: None,
+		version: None,
+		chain_id: None,
+		nonce: None,
+		issued_at: None,
+		expiration_time: None,
+		not_before: None,
+		request_id: None,
+		resources: None,
+	};
+
+	if let Some((value, rest)) = take_labeled(input, "URI") {
+		fields.uri = Some(value);
+		input = rest;
+	}
+
+	if let Some((value, rest)) = take_labeled(input, "Version") {
+		fields.version = Some(value);
+		input = rest;
+	}
+
+	if let Some((value, rest)) = take_labeled(input, "Chain ID") {
+		fields.chain_id = Some(value);
+		input = rest;
+	}
+
+	if let Some((value, rest)) = take_labeled(input, "Nonce") {
+		fields.nonce = Some(value);
+		input = rest;
+	}
+
+	if let Some((value, rest)) = take_labeled(input, "Issued At") {
+		fields.issued_at = Some(value);
+		input = rest;
+	}
+
+	if let Some((value, rest)) = take_labeled(input, "Expiration Time") {
+		fields.expiration_time = Some(value);
+		input = rest;
+	}
+
+	if let Some((value, rest)) = take_labeled(input, "Not Before") {
+		fields.not_before = Some(value);
+		input = rest;
+	}
+
+	if let Some((value, rest)) = take_labeled(input, "Request ID") {
+		fields.request_id = Some(value);
+		input = rest;
+	}
+
+	if let Some((resources, rest)) = take_resources(input) {
+		fields.resources = Some(resources);
+		input = rest;
+	}
+
+	(fields, input)
+}
+
+fn take_labeled<'a>(input: &'a str, label: &str) -> Option<(String, &'a str)> {
+	let prefix = format!("\n{label}: ");
+	let rest = input.strip_prefix(&prefix)?;
+	let value_len = rest.find('\n').unwrap_or(rest.len());
+	let value = &rest[..value_len];
+
+	if value.is_empty() {
+		return None;
+	}
+
+	Some((value.to_owned(), &rest[value_len..]))
+}
+
+fn take_resources(input: &str) -> Option<(Vec<String>, &str)> {
+	let mut rest = input.strip_prefix("\nResources:")?;
+	let mut resources = Vec::new();
+
+	while let Some(after_marker) = rest.strip_prefix("\n- ") {
+		let value_len = after_marker.find('\n').unwrap_or(after_marker.len());
+		let value = &after_marker[..value_len];
+
+		if value.is_empty() {
+			break;
+		}
+
+		resources.push(value.to_owned());
+		rest = &after_marker[value_len..];
+	}
+
+	Some((resources, rest))
 }
 
 /// ```markup
@@ -486,6 +703,74 @@ mod tests {
 		output.signed_message[0] ^= 1;
 
 		assert!(verify_sign_in(&input, &output).is_err());
+	}
+
+	#[test]
+	fn verify_sign_in_rejects_a_message_that_only_embeds_the_fields() {
+		let input = input();
+		let address = input.address.clone().unwrap();
+		// The real domain is not the first line. A substring search still
+		// finds every required field later in the text.
+		let message = format!(
+			"evil.example wants you to sign in with your Solana account:\n{address}\n\n\
+			 Transfer everything. Also: example.com wants you to sign in with your Solana account:\n{address}\n\n\
+			 Accept the terms of service.\n\n\
+			 URI: https://example.com\n\
+			 Version: 1\n\
+			 Chain ID: solana:mainnet\n\
+			 Nonce: nonce-1\n\
+			 Issued At: 2026-10-16T00:00:00Z\n\
+			 Resources:\n\
+			 - https://example.com/terms\n\
+			 - https://example.com/avatar.png"
+		);
+
+		assert!(verify_sign_in(&input, &signed_output_with_message(&input, message)).is_err());
+	}
+
+	#[test]
+	fn verify_sign_in_rejects_a_statement_with_a_smuggled_prefix() {
+		let input = input();
+		let address = input.address.clone().unwrap();
+		let message = format!(
+			"example.com wants you to sign in with your Solana account:\n{address}\n\n\
+			 I authorize a transfer. Accept the terms of service.\n\n\
+			 URI: https://example.com\n\
+			 Version: 1\n\
+			 Chain ID: solana:mainnet\n\
+			 Nonce: nonce-1\n\
+			 Issued At: 2026-10-16T00:00:00Z\n\
+			 Resources:\n\
+			 - https://example.com/terms\n\
+			 - https://example.com/avatar.png"
+		);
+
+		assert!(verify_sign_in(&input, &signed_output_with_message(&input, message)).is_err());
+	}
+
+	#[test]
+	fn verify_sign_in_rejects_a_field_the_app_did_not_send() {
+		let mut constrained = input();
+		constrained.issued_at = None;
+		let message = create_sign_in_message_text(&input()).unwrap();
+
+		assert!(
+			verify_sign_in(
+				&constrained,
+				&signed_output_with_message(&constrained, message)
+			)
+			.is_err()
+		);
+	}
+
+	#[test]
+	fn verify_sign_in_accepts_an_omitted_address_when_the_account_matches() {
+		let full = input();
+		let output = signed_output(&full);
+		let mut partial = full.clone();
+		partial.address = None;
+
+		verify_sign_in(&partial, &output).unwrap();
 	}
 
 	#[test]
