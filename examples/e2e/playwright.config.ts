@@ -32,14 +32,19 @@ export default defineConfig({
 			timeout: TEST_TIMEOUT_MS,
 		},
 		{
-			command: "trunk serve --port 3021",
+			// trunk 0.21.14 links notify-debouncer-full 0.5.0, which indexes
+			// `event.paths[0]` on its inotify thread. An empty-path event
+			// panics, and trunk's release profile is `panic = "abort"`, so
+			// the process dies with SIGABRT (exit 134) during a cold build.
+			// Polling never starts that thread. These tests do not reload.
+			command: "trunk serve --port 3021 --poll",
 			url: "http://127.0.0.1:3021",
 			reuseExistingServer: true,
 			cwd: `${root}../leptos-wallet`,
 			timeout: DEV_SERVER_TIMEOUT_MS,
 		},
 		{
-			command: "trunk serve --port 3022",
+			command: "trunk serve --port 3022 --poll",
 			url: "http://127.0.0.1:3022",
 			reuseExistingServer: true,
 			cwd: `${root}../dioxus-wallet`,
