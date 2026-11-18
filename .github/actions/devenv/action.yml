@@ -55,19 +55,34 @@ runs:
 
           local attempt=1
           local delay=5
+          local exit_code=0
+          local errexit=0
           while true; do
-            if "$@"; then
+            # A failed `if` leaves `$?` as 0, so the status has to be
+            # captured from the command itself. Otherwise a failed
+            # install still returns success and a later step reports
+            # `devenv: command not found`.
+            case $- in
+              *e*) errexit=1 ;;
+              *) errexit=0 ;;
+            esac
+            set +e
+            "$@"
+            exit_code=$?
+            if [ "$errexit" -eq 1 ]; then
+              set -e
+            fi
+            if [ "$exit_code" -eq 0 ]; then
               return 0
             fi
 
-            local exit_code=$?
             if [ "$attempt" -ge "$attempts" ]; then
-              echo "Command failed after ${attempt} attempt(s): $*"
+              echo "Command failed after ${attempt} attempt(s) with exit code ${exit_code}: $*" >&2
               return "$exit_code"
             fi
 
-            echo "Command failed with exit code ${exit_code}: $*"
-            echo "Retrying (${attempt}/${attempts}) in ${delay}s..."
+            echo "Command failed with exit code ${exit_code}: $*" >&2
+            echo "Retrying (${attempt}/${attempts}) in ${delay}s..." >&2
             sleep "$delay"
             attempt=$((attempt + 1))
             delay=$((delay * 2))
@@ -105,19 +120,34 @@ runs:
 
           local attempt=1
           local delay=5
+          local exit_code=0
+          local errexit=0
           while true; do
-            if "$@"; then
+            # A failed `if` leaves `$?` as 0, so the status has to be
+            # captured from the command itself. Otherwise a failed
+            # install still returns success and a later step reports
+            # `devenv: command not found`.
+            case $- in
+              *e*) errexit=1 ;;
+              *) errexit=0 ;;
+            esac
+            set +e
+            "$@"
+            exit_code=$?
+            if [ "$errexit" -eq 1 ]; then
+              set -e
+            fi
+            if [ "$exit_code" -eq 0 ]; then
               return 0
             fi
 
-            local exit_code=$?
             if [ "$attempt" -ge "$attempts" ]; then
-              echo "Command failed after ${attempt} attempt(s): $*"
+              echo "Command failed after ${attempt} attempt(s) with exit code ${exit_code}: $*" >&2
               return "$exit_code"
             fi
 
-            echo "Command failed with exit code ${exit_code}: $*"
-            echo "Retrying (${attempt}/${attempts}) in ${delay}s..."
+            echo "Command failed with exit code ${exit_code}: $*" >&2
+            echo "Retrying (${attempt}/${attempts}) in ${delay}s..." >&2
             sleep "$delay"
             attempt=$((attempt + 1))
             delay=$((delay * 2))
