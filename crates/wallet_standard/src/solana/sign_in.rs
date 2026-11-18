@@ -699,8 +699,12 @@ mod tests {
 	fn verify_sign_in_rejects_a_bad_signature() {
 		let input = input();
 		let mut output = signed_output(&input);
-
-		output.signed_message[0] ^= 1;
+		// Corrupt the signature and leave the message untouched, so this
+		// fails in `Signature::verify` rather than in the parser.
+		let mut raw = [0u8; 64];
+		raw.copy_from_slice(output.signature.as_ref());
+		raw[0] ^= 0xff;
+		output.signature = Signature::from(raw);
 
 		assert!(verify_sign_in(&input, &output).is_err());
 	}

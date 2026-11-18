@@ -58,4 +58,6 @@ Call `verify_sign_in`. It parses the signed message with the same rules as `@sol
 - the account address and public key must be the address inside the message
 - the Ed25519 signature must verify over those exact bytes
 
+`verify_sign_in` does not read the clock and does not remember nonces. A signature over an expired window still passes when the signed fields equal the input. Set `nonce`, `issued_at`, and `expiration_time` on that input, reject a window that is not current, and accept each nonce once. Omit `domain` only when any origin is acceptable: an omitted domain is not compared.
+
 Searching the signed text for `URI:` or `Resources:` is not enough. A wallet can embed those strings inside a different statement, or after a different domain line, and still satisfy a substring check. `verify_sign_in` rejects that message. Domain and address may be omitted from the input; the wallet fills them in, and verification then checks the account against the message.
