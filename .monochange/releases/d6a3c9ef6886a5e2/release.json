@@ -1,0 +1,213 @@
+{
+	"schema_version": "0.10",
+	"kind": "monochange.releaseRecord",
+	"created_at": "2026-11-18T12:27:22Z",
+	"command": "release",
+	"version": "0.7.5",
+	"versions": {
+		"core": "0.7.5"
+	},
+	"release_targets": [
+		{
+			"id": "core",
+			"kind": "group",
+			"version": "0.7.5",
+			"version_format": "primary",
+			"tag": true,
+			"release": true,
+			"tag_name": "v0.7.5",
+			"rendered_title": "v0.7.5 (2026-11-18)",
+			"rendered_changelog_title": "[0.7.5](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.5) (2026-11-18)",
+			"members": [
+				"wallet_standard",
+				"wallet_standard_browser"
+			]
+		}
+	],
+	"released_packages": [
+		"wallet_standard",
+		"wallet_standard_browser"
+	],
+	"changed_files": [
+		"Cargo.lock",
+		"Cargo.toml",
+		"changelog.md",
+		"crates/wallet_standard/Cargo.toml",
+		"crates/wallet_standard_browser/Cargo.toml"
+	],
+	"package_publications": [
+		{
+			"package": "wallet_standard",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.5",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		},
+		{
+			"package": "wallet_standard_browser",
+			"ecosystem": "cargo",
+			"registry": "crates_io",
+			"version": "0.7.5",
+			"mode": "builtin",
+			"trusted_publishing": {
+				"enabled": true,
+				"mode": "required",
+				"repository": "pina-rs/wallet_standard",
+				"workflow": "publish.yml",
+				"environment": "publisher"
+			}
+		}
+	],
+	"updated_changelogs": [
+		"changelog.md"
+	],
+	"deleted_changesets": [
+		".changeset/strict-sign-in-verification.md"
+	],
+	"changesets": [
+		{
+			"path": ".changeset/strict-sign-in-verification.md",
+			"summary": "Reject sign-in messages that only embed expected fields",
+			"details": "`verify_sign_in` used to accept a signed message when the requested fields appeared anywhere in the text. A wallet could put a different domain on the first line, or hide a transfer inside the statement, and still pass. Verification now parses the message the way `@solana/wallet-standard-util` does: the preamble must be the first line, every field the app set must match, and a field the app left unset must be absent. Domain and address may still be omitted; the wallet fills them in and the account is checked against the message.",
+			"targets": [
+				{
+					"id": "wallet_standard",
+					"kind": "package",
+					"bump": "patch",
+					"origin": "direct-change",
+					"evidence_refs": [],
+					"change_type": "patch"
+				}
+			],
+			"context": {
+				"provider": "github",
+				"host": "github.com",
+				"capabilities": {
+					"commit_web_urls": true,
+					"actor_profiles": true,
+					"review_request_lookup": true,
+					"related_issues": true,
+					"issue_comments": true
+				},
+				"introduced": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "6a795329c1cd99eb68a25774a3f4f77b05b027d6",
+						"short_sha": "6a79532",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/6a795329c1cd99eb68a25774a3f4f77b05b027d6",
+						"authored_at": "2026-11-18T12:09:03Z",
+						"committed_at": "2026-11-18T12:09:03Z",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#86",
+						"title": "fix: reject sign-in messages that only embed expected fields",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/86",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"last_updated": {
+					"actor": {
+						"provider": "github",
+						"host": "github.com",
+						"id": null,
+						"login": "ifiokjr",
+						"display_name": "ifiokjr",
+						"url": "https://github.com/ifiokjr",
+						"source": "review_request_author"
+					},
+					"commit": {
+						"provider": "github",
+						"host": "github.com",
+						"sha": "6a795329c1cd99eb68a25774a3f4f77b05b027d6",
+						"short_sha": "6a79532",
+						"url": "https://github.com/pina-rs/wallet_standard/commit/6a795329c1cd99eb68a25774a3f4f77b05b027d6",
+						"authored_at": "2026-11-18T12:09:03Z",
+						"committed_at": "2026-11-18T12:09:03Z",
+						"author_name": "Ifiok Jr.",
+						"author_email": "1160934+ifiokjr@users.noreply.github.com"
+					},
+					"review_request": {
+						"provider": "github",
+						"host": "github.com",
+						"kind": "pull_request",
+						"id": "#86",
+						"title": "fix: reject sign-in messages that only embed expected fields",
+						"url": "https://github.com/pina-rs/wallet_standard/pull/86",
+						"author": {
+							"provider": "github",
+							"host": "github.com",
+							"id": null,
+							"login": "ifiokjr",
+							"display_name": "ifiokjr",
+							"url": "https://github.com/ifiokjr",
+							"source": "review_request_author"
+						}
+					}
+				},
+				"related_issues": []
+			}
+		}
+	],
+	"changelogs": [
+		{
+			"owner_id": "core",
+			"owner_kind": "group",
+			"output": "default",
+			"stream": "default",
+			"path": "changelog.md",
+			"format": "keep_a_changelog",
+			"notes": {
+				"title": "[0.7.5](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.5) (2026-11-18)",
+				"summary": [
+					"Grouped release for `core`."
+				],
+				"sections": [
+					{
+						"title": "Fixes",
+						"collapsed": false,
+						"entries": [
+							"- **Reject sign-in messages that only embed expected fields.** `verify_sign_in` used to accept a signed message when the requested fields appeared anywhere in the text. A wallet could put a different domain on the first line, or hide a transfer inside the statement, and still pass. Verification now parses the message the way `@solana/wallet-standard-util` does: the preamble must be the first line, every field the app set must match, and a field the app left unset must be absent. Domain and address may still be omitted; the wallet fills them in and the account is checked against the message.\n  _Packages:_ 🟢 _wallet_standard_\n  _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #86](https://github.com/pina-rs/wallet_standard/pull/86)"
+						]
+					}
+				]
+			},
+			"rendered": "## [0.7.5](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.5) (2026-11-18)\n\nGrouped release for `core`.\n\n### Fixes\n\n- **Reject sign-in messages that only embed expected fields.** `verify_sign_in` used to accept a signed message when the requested fields appeared anywhere in the text. A wallet could put a different domain on the first line, or hide a transfer inside the statement, and still pass. Verification now parses the message the way `@solana/wallet-standard-util` does: the preamble must be the first line, every field the app set must match, and a field the app left unset must be absent. Domain and address may still be omitted; the wallet fills them in and the account is checked against the message.\n  _Packages:_ 🟢 _wallet_standard_\n  _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #86](https://github.com/pina-rs/wallet_standard/pull/86)"
+		}
+	],
+	"provider": {
+		"kind": "github",
+		"owner": "pina-rs",
+		"repo": "wallet_standard",
+		"host": null
+	}
+}

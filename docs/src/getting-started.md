@@ -9,10 +9,10 @@ Add the crates to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Core protocol traits (required)
-wallet_standard = "0.7.4"
+wallet_standard = "0.7.5"
 
 # Browser/WASM integration (only for wasm32 targets)
-wallet_standard_browser = "0.7.4"
+wallet_standard_browser = "0.7.5"
 ```
 
 <!-- {/install_deps} -->

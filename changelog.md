@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.5](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.5) (2026-11-18)
+
+Grouped release for `core`.
+
+### Fixes
+
+- **Reject sign-in messages that only embed expected fields.** `verify_sign_in` used to accept a signed message when the requested fields appeared anywhere in the text. A wallet could put a different domain on the first line, or hide a transfer inside the statement, and still pass. Verification now parses the message the way `@solana/wallet-standard-util` does: the preamble must be the first line, every field the app set must match, and a field the app left unset must be absent. Domain and address may still be omitted; the wallet fills them in and the account is checked against the message. _Packages:_ 🟢 _wallet_standard_ _Owner:_ [@ifiokjr](https://github.com/ifiokjr) · _Review:_ [PR #86](https://github.com/pina-rs/wallet_standard/pull/86)
+
 ## [0.7.4](https://github.com/pina-rs/wallet_standard/releases/tag/v0.7.4) (2026-10-26)
 
 Grouped release for `core`.
