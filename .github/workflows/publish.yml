@@ -97,15 +97,7 @@ jobs:
             --format json
         shell: devenv shell -- bash -e {0}
 
-      # Every monochange action is a thin wrapper around the shared
-      # `dist/index.mjs`, which selects its handler from the `name` input and
-      # falls back to `GITHUB_ACTION_PATH`. The runner only sets that variable
-      # for composite actions, and the v0.12.2 `publish-draft-releases`
-      # `action.yml` omits the internal `name` input that its sibling actions
-      # declare with a default, so pass it explicitly. Without it the
-      # dispatcher throws `Unsupported action variant` before publishing.
       - name: publish draft releases
-        uses: monochange/actions/publish-draft-releases@a7340074f50aa9814222cb88a2128f3865539f2f # v0.12.2
+        uses: monochange/actions/publish-draft-releases@ccd95cf2e01389dfd19a8d59c8c09edaaf0cc5ef # v0.12.3
         with:
-          name: publish-draft-releases
           release-tag: ${{ env.RELEASE_TAG }}
