@@ -97,8 +97,7 @@ jobs:
             --format json
         shell: devenv shell -- bash -e {0}
 
-      - name: publish draft release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release edit "$RELEASE_TAG" --draft=false --latest --repo "$GITHUB_REPOSITORY"
-        shell: bash
+      - name: publish draft releases
+        uses: monochange/actions/publish-draft-releases@a7340074f50aa9814222cb88a2128f3865539f2f # v0.12.2
+        with:
+          release-tag: ${{ env.RELEASE_TAG }}
